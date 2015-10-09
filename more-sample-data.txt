@@ -1,0 +1,101 @@
+Entities:
+Node:
+{
+	"_id" : "45",
+	"nodeDisplay" : "NumAnswerScoreOverFive",
+	"nodeDescription" : "Number of answers the answerer answers and score over five",
+	"nodeTags" : [
+		{ "_id" : "7" },
+		{ "_id" : "21" },
+		{ "_id" : "158" },
+	],
+	"nodeParents" : [ {
+		"_id" : "31"
+	} ],
+	"nodeChildren" : [
+		{ "_id" : 57 },
+		{ "_id" : 69 },
+		{ "_id" : 85 },
+		{ "_id" : 102 },
+		{ "_id" : 217 },
+	],
+	"nodeVotes" : [
+		{
+			"_id" : "672",
+			"type" : "1"
+		},
+		{
+			"_id" : "768",
+			"type" : "-1"
+		},
+		{
+			"_id" : "1024",
+			"type" : "1"
+		}
+	],
+	"nodeStatus" : "1",
+	"nodeCreateAt" : "2015-09-11 22:03:12"
+}
+
+User: _id, username, loginToken, email, intro, registerAt
+{
+	"_id" : "3",
+	"username" : "hans.m",
+	"loginToken" : "{a-sha1ed-string-from-password}",
+	"email" : "hans.m@i-learning.com.au",
+	"intro" : "Hello world",
+	"registerAt" : "2015-09-11 21:06:56"
+}
+
+Tag: _id, tagName, tagDescription, createdBy, createdAt
+{
+	"_id" : "4752",
+	"tagName" : "answers",
+	"tagDescription" : "About stackoverflow answers",
+	"createdBy" : {
+		"_id" : "3"
+	},
+	"createdAt" : "2015-09-11 22:03:51"
+}
+
+Operations:
+Vote: _id, type, description, voteUser, voteAt, voteOnNode
+{
+	"_id" : "2379",
+	"type" : "+1",
+	"description" : "The answer of an expert counts. Good.",
+	"voteUser" : {
+		"_id" : "3"
+	},
+	"voteAt" : "2015-09-11 22:15:23",
+	"voteOnNode" : {
+		"_id" : "45"
+	}
+}
+
+Add: _id, node, addAt
+{
+	"_id" : "136",
+	"node" : {
+		"_id" : "45"
+	},
+	"addAt" : "2015-09-11 22:03:51"
+}
+
+Modify: _id, node, content, modifyAt
+{
+	"_id" : "254",
+	"node" : {
+		"_id" : "45"
+	},
+	"content" : {
+		"nodeTags" : [
+			{ "_id" : "7" },
+			{ "_id" : "21" },
+			{ "_id" : "158" },
+			{ “_id” : “425” }
+		],
+		
+	},
+	"modifyAt" : "2015-09-11 22:26:23"
+}
