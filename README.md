@@ -1,4 +1,6 @@
-# ExpertMind (formerly COMP9323)
+# ExpertMind (formerly COMP9323)  
+
+ExpertMind is a project for identifying how to get experts from the Internet by crowdsourcing the ideas and show them in a mindmap.  
 
 [![Join the chat at https://gitter.im/solki/COMP9323](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/solki/COMP9323?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 project of comp9323
