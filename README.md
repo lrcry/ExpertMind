@@ -18,6 +18,9 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       ```pip install djangorestframework```  
       ```pip install markdown```  
       ```pip install django-filter # see http://www.django-rest-framework.org/#installation```
+
+  - Use PIP to install orchestrate mongodb service support  
+      ```pip install porc```  
 - 2. Startup
   - Go into the root folder of *the service* in a Terminal or &#42;nix shell environment
   - In the Terminal or &#42;nix shell environment, type the following command:  
@@ -30,7 +33,8 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       with the JSON body like  
       {  
         "nodeDisplay": "This is a test Node name",  
-        "nodeDescription": "This is a test Node description"  
+        "nodeDescription": "This is a test Node description",  
+        "userId": "user_test_id" ```// if someone do this without logged in, just leave it blank```  
       }
     - Add a child node to an existed node  
     *POST /expertmind_service/add_child_node/*  
@@ -40,11 +44,12 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
         "nodeDescription": "this is a test child node description",  
         "nodeParents"0: [  
           {"_id": "someParentId"}  
-        ]  
+        ],  
+        "userId": "user_test_id" ```// if someone do this without logged in, just leave it blank```  
       }  
     *Note: in current version of the services, only one parent for each node will be taken into consideration. That means if you pass a JSON body with multiple nodeParents, the services will take the first parent as the parent of the child node to be added.*
     - Get information of a Node by its ID  
-      *GET /expertmind_service/get_node_by_id/[node_id]*  
+      *GET /expertmind_service/nodes/[node_id]*  
       If a node is successfully retrieved, the response will generally be  
       {  
         "result": "success",  
@@ -72,7 +77,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
         }  
       }
     - Get information of descendant nodes of a Node by its ID  
-      *GET /expertmind_service/get_descendant_nodes/[node_id]*  
+      *GET /expertmind_service/nodes/[node_id]/descendant/*  
       If a node is successfully retrieved, the response will generally be  
       {  
         "result": "success",  
@@ -101,7 +106,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       }  
       *Note: in this case the response will contain a list of descendant node information.*
     - Get information of children nodes of a Node by its ID  
-      *GET /expertmind_service/get_child_nodes/[node_id]*  
+      *GET /expertmind_service/nodes/[node_id]/children/*  
       {  
         "result": "success",  
         "data": [  
