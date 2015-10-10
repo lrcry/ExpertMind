@@ -7,7 +7,9 @@ project of comp9323
 
 ## Deployment
 
-### Deploy with Docker (recommended)
+You may deploy this application using either Docker or manual methods, but using Docker is recommended, because you don't need to worry about the installation of Python and its dependencies, it will run in a sandbox environment, and it can be easily removed.
+
+### Deploy with Docker (Recommended)
 
 1. Install Docker in the machine for deployment.
 
@@ -23,7 +25,7 @@ project of comp9323
 
    You may run `sudo docker ps` to check if the server is running.
 
-4. Open `http://localhost` in your browser.
+4. Open `http://localhost` in your browser. If you are using other ports rather than `80`, you should append it to the end of this url.
 
 5. If you want to stop it, firstly get the container id using `sudo docker ps`, and then run `sudo docker stop CONTAINER_ID` to stop it.
 
@@ -31,6 +33,8 @@ project of comp9323
 
 
 ### Manual Deployment
+
+If you don't want to use Docker as described above, you can deploy it manually in the following way.
 
 Before deploy and use ExpertMind REST Service codes on your computer, please make sure that you have Python 2.7 and PIP installed. Use [SetupTools](https://pypi.python.org/pypi/setuptools) to setup and manage package index of python is highly recommended here.
 
