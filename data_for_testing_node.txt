@@ -1,0 +1,83 @@
+1. Create a new (root) node
+
+POST /api/create_new_node
+{
+    "nodeDisplay": "programmer expert",
+    "nodeDescription": "how to identify a programming expert?",
+    "nodeTags": [
+        {
+            "tag_message": "programmer"
+        },
+        {
+            "tag_message": "expert"
+        }
+    ] 
+}
+
+Find the _id from this new node (say "parent_node").
+
+2. Add children nodes
+
+POST /api/add_child_node
+{
+    "nodeDisplay": "proficient in github",
+    "nodeDescription": "Github is one of the most popular software version control tool. Knowing it well indicates an expert of programming.",
+    "nodeTags": [
+        {
+            "tag_message": "github"
+        }
+    ],
+    "nodeParents": [
+        { "_id": "parent_node" }
+    ]
+}
+=> get an _id (say "child_github1")
+
+POST /api/add_child_node
+{
+    "nodeDisplay": "skilled in Java language",
+    "nodeDescription": "Java is one of the most widely-used and powerful programming language all over the world.",
+    "nodeTags": [
+        {
+            "tag_message": "Java"
+        }
+    ],
+    "nodeParents": [
+        { "_id": "parent_node" }
+    ]
+}
+=> get an _id (say "child_java2")
+
+POST /api/add_child_node
+{
+    "nodeDisplay": "Do well in algorithm",
+    "nodeDescription": "algorithm changes everything, algorithm is everything",
+    "nodeTags": [
+        {
+            "tag_message": "algorithm"
+        }
+    ],
+    "nodeParents": [
+        { "_id": "parent_node" }
+    ]
+}
+=> get an _id (say "child_alg3")
+
+3. add a child node to a node which already has a parent
+POST /api/add_child_node
+{
+    "nodeDisplay": "know sorting algorithm",
+    "nodeDescription": "sorting is one of the most widely-used algorithm",
+    "nodeTags": [
+        {
+            "tag_message": "algorithm"
+        },
+        {
+            "tag_messsage": "sorting"
+        }
+    ],
+    "nodeParents": [
+        { "_id": "child_alg3" }
+    ]
+}
+=> get and _id (say "child_alg3_sort1")
