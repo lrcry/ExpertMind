@@ -28,9 +28,12 @@ def create_new_node(request):
             data_checker.check_create_new_node(data)
         except Exception, e:
             error = dict(success="false", data={}, error_message=str(e))
-        nodes = Nodes().create(data["nodeDisplay"], data["nodeDescription"], data["nodeTags"], [],
+            return JSONResponse(error)
+
+        created_node_key = Nodes().create(data["nodeDisplay"], data["nodeDescription"], data["nodeTags"], [],
                               [], [], 1)
-        if "key" in nodes:  # succeeded
+        if created_node_key:  # succeeded
+            print 'create node: key=', created_node_key
             map_nodes = Nodes().retrieveAll()
             create_node_response = {
                 "success": "true",
@@ -59,39 +62,58 @@ def add_child_node(request):
     if request.method == 'POST':
         try:
             data = JSONParser().parse(request)
-            checked_parent_node = data_checker.check_add_child_node(data)
+            parent_node = data_checker.check_add_child_node(data)
 
-            node_tags = data["nodeTags"]
             if 'nodeTags' not in data:
-                node_tags = []  # not required
+                data["nodeTags"] = []  # not required
 
             if 'nodeChildren' not in data:
-                node_children = []
+                data["nodeChildren"] = []
 
             if 'nodeVotes' not in data:
-                node_votes = []
+                data["nodeVotes"] = []
             node_status = 1
-            created_node = Nodes().create(data["nodeDisplay"], data["nodeDescription"], node_tags, data["nodeParents"],
-                                          node_children, node_votes, node_status)
+            created_child_node_key = Nodes().create(
+                data["nodeDisplay"],
+                data["nodeDescription"],
+                data["nodeTags"],
+                data["nodeParents"],
+                data["nodeChildren"],
+                data["nodeVotes"],
+                node_status
+            )
 
-            if "key" in created_node:
-                # checked_parent_node
-                # print checked_parent_node
-                # parent_node_data = checked_parent_node.json()
-                # print parent_node_data[int(0)]
+            if created_child_node_key:
                 # TODO update parent node with adding its new child
-                # TODO put an add node operation to this child node, and update operation to its parent with user ID
-                map_nodes = Nodes().retrieveAll()
-                add_child_resp = {
-                    "success": "true",
-                    "data": map_nodes
-                }
+
+                print 'add child node: key=', created_child_node_key
+                print parent_node['_id'], parent_node['nodeChildren']
+                parent_node["nodeChildren"].append({
+                    "_id": created_child_node_key
+                })
+
+                parent_node_update = Nodes().update(parent_node["_id"],
+                               parent_node["nodeDisplay"],
+                               parent_node["nodeDescription"],
+                               parent_node["nodeTags"],
+                               parent_node["nodeParents"],
+                               parent_node["nodeChildren"],
+                               parent_node["nodeVotes"],
+                               parent_node["nodeStatus"],
+                               parent_node["nodeCreateAt"])
+
+                if parent_node_update:
+                    print "update parent: key=", parent_node_update
+                    # TODO put an add node operation to this child node, and update operation to its parent with user ID
+                    map_nodes = Nodes().retrieveAll()
+                    add_child_resp = {
+                        "success": "true",
+                        "data": map_nodes
+                    }
+                else:
+                    raise ValueError("Update parent node failed during adding a child node.")
             else:
-                add_child_resp = {
-                    "success": "false",
-                    "data": {},
-                    "error_message": "Orchestrate service temporarily unavailable."
-                }
+                raise ValueError("Add child node failed.")
             return JSONResponse(add_child_resp)
         except Exception, e:
             print e
@@ -112,8 +134,6 @@ def get_node_by_id(request, node_id):
                 return JSONResponse(error)
 
             node_got = Nodes().retrieveById(node_id)
-
-            map_nodes = Nodes().retrieveAll()
 
             if 'code' in node_got and node_got['code'] == 'items_not_found': # not found in database
                 no_node_response = {

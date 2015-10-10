@@ -27,18 +27,13 @@ class Nodes(object):
         })
 
         patch = Patch()
-        print node.key
+        nodeKey = node.key
         patch.add("_id", node.key)
-        # if nodeParents:
-        #     pa_node = self.retrieveById(nodeParents)
-        #     pa_nodeChildren = pa_node['nodeChildren']
-        #     pa_nodeChildren.append(node.key)
-        #     patch.replace('nodeChildren', pa_nodeChildren)
-        #     # update parentnode's nodeChildren
-        conn.patch('test_nodes', node.key, patch)
-        # conn.patch('test_nodes', nodeParents, patch)
 
-        return node
+        conn.patch('test_nodes', node.key, patch)
+        print 'nodeKey is ' + node.key
+
+        return nodeKey
 
     def retrieveById(self, _id):
         conn = ConnectDB().connect()
@@ -57,7 +52,7 @@ class Nodes(object):
     def update(self, _id, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus,
                nodeCreateAt):
         conn = ConnectDB().connect()
-        conn.put('test_nodes', _id, {
+        update_result = conn.put('test_nodes', _id, {
             "nodeDisplay": nodeDisplay,
             "nodeDescription": nodeDescription,
             "nodeTags": nodeTags,
@@ -65,8 +60,12 @@ class Nodes(object):
             "nodeChildren": nodeChildren,
             "nodeVotes": nodeVotes,  # This can be replaced by invoke methods in vote class
             "nodeStatus": str(nodeStatus),
-            "nodeCreateAt": nodeCreateAt
+            "nodeCreateAt": nodeCreateAt,
+            "_id": _id
         })
+
+        nodeKey = update_result.key
+        return nodeKey
 
     def delete(self, _id):
         conn = ConnectDB().connect()

@@ -20,7 +20,7 @@ def check_add_child_node(data):
 
     # check nodeTags
     if 'nodeTags' not in data:
-        data["nodeTags"] = {}
+        data["nodeTags"] = []
 
     # check nodeParents
     if 'nodeParents' not in data or len(data["nodeParents"]) == 0:
