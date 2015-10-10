@@ -35,9 +35,11 @@ project of comp9323
 Before deploy and use ExpertMind REST Service codes on your computer, please make sure that you have Python 2.7 and PIP installed. Use [SetupTools](https://pypi.python.org/pypi/setuptools) to setup and manage package index of python is highly recommended here.
 
   - Use PIP to install Django framework
+
       ```shell
       pip install Django
       ```
+
       See [Django installation documentation](https://docs.djangoproject.com/en/1.8/topics/install/#installing-official-release).
   - Use PIP to install Django REST framework support  
       ```shell
@@ -72,9 +74,11 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       {
         "nodeDisplay": "This is a test Node name",
         "nodeDescription": "This is a test Node description",
-        "userId": "user_test_id" // if someone do this without logged in, just leave it blank
+        "userId": "user_test_id"
       }
       ```
+      If someone do this without logged in, just leave 'userId' as blank.
+
     - Add a child node to an existed node  
 
       *POST /api/add_child_node/*
@@ -84,12 +88,13 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       {
         "nodeDisplay": "this is a test child node name",
         "nodeDescription": "this is a test child node description",
-        "nodeParents"0: [
+        "nodeParents": [
           {"_id": "someParentId"}
         ],
-        "userId": "user_test_id" // if someone do this without logged in, just leave it blank
+        "userId": "user_test_id"
       }
       ```
+      If someone do this without logged in, just leave 'userId' as blank.
       *Note: in current version of the services, only one parent for each node will be taken into consideration. That means if you pass a JSON body with multiple nodeParents, the services will take the first parent as the parent of the child node to be added.*
 
     - Get information of a Node by its ID
