@@ -1,15 +1,19 @@
-{% load staticfiles %}
-<html>
+<html ng-app="app" ng-controller="RootController">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <link rel="stylesheet" href=".{% static "css/main.css" %}">
     <title>ExpertMind</title>
+    <link rel="icon" href="static/img/logo_64.png">
+    <link rel="stylesheet" href="static/css/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/main.css">
+    <script src="static/js/vendor/jquery/jquery-2.1.4.min.js"></script>
+    <script src="static/js/vendor/angular/angular.min.js"></script>
+    <script src="static/js/vendor/bootstrap/bootstrap.min.js"></script>
+    <script src="static/js/vendor/konva.min.js"></script>
+    <script src="static/js/main.js"></script>
 </head>
 <body>
-<div id="container"></div>
-<script src=".{% static "js/vendor/jquery-2.1.4.min.js" %}"></script>
-<script src=".{% static "js/vendor/konva.min.js" %}"></script>
-<script src=".{% static "js/main.js" %}"></script>
+<div modal-add-node></div>
+<div map-canvas></div>
 </body>
 </html>

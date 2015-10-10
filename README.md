@@ -99,6 +99,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       }
       ```
       If someone do this without logged in, just leave 'userId' as blank.
+
       *Note: in current version of the services, only one parent for each node will be taken into consideration. That means if you pass a JSON body with multiple nodeParents, the services will take the first parent as the parent of the child node to be added.*
 
     - Get information of a Node by its ID
