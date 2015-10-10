@@ -40,5 +40,5 @@ Thumbs.db
 
 # IDEA files #
 ##############
-.idea
-.idea/*
+.idea/
+*.iml

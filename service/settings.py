@@ -51,12 +51,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'expertmind_service.urls'
+ROOT_URLCONF = 'service.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': [os.path.join(BASE_DIR, 'web/templates')]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -70,18 +70,13 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'expertmind_service.wsgi.application'
+WSGI_APPLICATION = 'service.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+DATABASES = {}
 
 
 # Internationalization
@@ -102,6 +97,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "web/static"),
+)
 
 
 REST_FRAMEWORK = {

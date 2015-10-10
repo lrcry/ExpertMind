@@ -1,5 +1,5 @@
-from ExpertMind.tag import Tag
-from ExpertMind.nodes import Nodes
+from dao.tag import Tag
+from dao.nodes import Nodes
 
 
 __author__ = 'hansmong'

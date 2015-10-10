@@ -1,0 +1,182 @@
+{
+  "root_node_id": 0,
+  "node_list":[
+    {
+      "id": 0,
+      "text": "What makes a good Programmer?",
+      "author":{
+        "id": 0,
+        "name": "Admin"
+      },
+      "description": "Here we investigate what are the essential properties that a good Programmer must have.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 120,
+      "down_vote": 15,
+      "sub_nodes":[
+        1,2,3
+      ]
+    },
+    {
+      "id": 1,
+      "text": "Good at Programming",
+      "author":{
+        "id": 0,
+        "name": "Admin"
+      },
+      "description": "I think programming is the most important skill that a programmer must have.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 150,
+      "down_vote": 0,
+      "sub_nodes":[
+        4,5,6
+      ]
+    },
+    {
+      "id": 2,
+      "text": "Good at Learning new Stuff",
+      "author":{
+        "id": 0,
+        "name": "Admin"
+      },
+      "description": "Technology is changing so fast, as a good programmer, he or she must be an efficient learner.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 120,
+      "down_vote": 15,
+      "sub_nodes":[
+        7,8
+      ]
+    },
+    {
+      "id": 3,
+      "text": "Good at Cooperation & Teamwork",
+      "author":{
+        "id": 0,
+        "name": "Admin"
+      },
+      "description": "No single programmer can make a really big software system, teamwork is also essential for each programmer in a good team.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 120,
+      "down_vote": 15,
+      "sub_nodes":[
+        9,10
+      ]
+    },
+    {
+      "id": 4,
+      "text": "Good at Fundamental Programming Languages",
+      "author":{
+        "id": 1,
+        "name": "Helen"
+      },
+      "description": "Fundamental programming languages like C, C++, and Java are very basic but versatile languages, each good programmer should be able to use at least one of these languages.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 190,
+      "down_vote": 12,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 5,
+      "text": "Be familiar with Scripting Languages",
+      "author":{
+        "id": 2,
+        "name": "Jim"
+      },
+      "description": "Scripting languages like Python, Shell, Perl etc. are powerful tools and essential in complex enterprise systems, a good programmer should be familiar with at least one of them",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 120,
+      "down_vote": 15,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 6,
+      "text": "Be familiar with famous Design patterns and Frameworks",
+      "author":{
+        "id": 3,
+        "name": "Mike"
+      },
+      "description": "Famous design patterns like MVC, MVVM etc. and their corresponding programming frameworks are very popular and useful in the real world applications, a good programmer should be able to apply some of them in their work.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 160,
+      "down_vote": 25,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 7,
+      "text": "Good at Reading Documentations and Source Code",
+      "author":{
+        "id": 4,
+        "name": "Lancelot"
+      },
+      "description": "To master a new technology, the fastest and safe way is to read the official documentation and source code if available, a good programmer should be good at this.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 170,
+      "down_vote": 32,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 8,
+      "text": "Good at Applying new Technology in the real applications",
+      "author":{
+        "id": 5,
+        "name": "Kate"
+      },
+      "description": "New technologies emerge very swiftly, as a good programmer, he or shw should be able to pick and apply suitable technology for their real applications.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 30,
+      "down_vote": 10,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 9,
+      "text": "Be good at communication",
+      "author":{
+        "id": 6,
+        "name": "Tim"
+      },
+      "description": "A good communication skill is important for a good programmer to exchange ideas and discuss about sophisticated problems with his or her teammates.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 220,
+      "down_vote": 9,
+      "sub_nodes":[
+
+      ]
+    },
+    {
+      "id": 10,
+      "text": "Be familiar with popular collaborative programming tools",
+      "author":{
+        "id": 7,
+        "name": "Adam"
+      },
+      "description": "Some collaborative programming tools like Git, SVN etc. are important for large-scale software projects, a good programmer should be familiar with them to work effectively in a cooperative programming environment.",
+      "creation_time": "19:00 21/9/15",
+      "modification_time": "",
+      "up_vote": 201,
+      "down_vote": 16,
+      "sub_nodes":[
+
+      ]
+    }
+  ]
+}
+

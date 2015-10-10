@@ -3,7 +3,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from django.views.decorators.csrf import csrf_exempt
 import data_checker
-from ExpertMind.nodes import Nodes
+from dao.nodes import Nodes
 import json
 
 
