@@ -29,7 +29,7 @@ You may deploy this application using either Docker or manual methods, but using
 
 5. If you want to stop it, firstly get the container id using `sudo docker ps`, and then run `sudo docker stop CONTAINER_ID` to stop it.
 
-6. If you want to remove the image, run `sudo docker rmi expert-mind`.
+6. If you want to remove the image, run `sudo docker rmi -f expert-mind`.
 
 
 ### Manual Deployment
