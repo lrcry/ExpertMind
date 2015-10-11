@@ -59,3 +59,23 @@ def check_create_new_node(data):
             else:
                 if Tag.retrieveById(node_tag["_id"]) is None:  # non-existent node tag in database
                     raise ValueError("Node tag does not exist in database: tag _id=%s" % node_tag["_id"])
+
+
+# check input vote on a node
+def check_vote_node(data):
+    if 'userId' not in data: # not login
+        # raise ValueError("No userId in given vote.")
+        data['userId'] = ""
+
+    if 'type' not in data:
+        raise ValueError("No type of vote given.")
+
+    if data['type'] <> "1" and data['type'] <> "-1":
+        raise ValueError("Invalid type of vote. Can only be 1 or -1.")
+
+    if 'nodeId' not in data:
+        raise ValueError("No nodeId given in vote. Who are you voting on?")
+
+    id_node = Nodes().retrieveById(data['nodeId'])
+    if id_node.status_code == 404:
+        raise ValueError("Cannot find the node voting on.")

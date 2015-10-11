@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^nodes/(?P<node_id>.+)/descendant/$', views.get_descendant_nodes, name='get_descendant_nodes'), # get descendant
     url(r'^nodes/(?P<node_id>.+)/children/$', views.get_child_nodes, name='get_child_nodes'), # get children
     url(r'^nodes/$', views.get_mindmap, name='get_mindmap'), # get all nodes
+
+    url(r'^votes/$', views.node_votes, name='node_votes'), # POST node votes
 ]

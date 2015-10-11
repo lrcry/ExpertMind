@@ -84,8 +84,6 @@ def add_child_node(request):
             )
 
             if created_child_node_key:
-                # TODO update parent node with adding its new child
-
                 print 'add child node: key=', created_child_node_key
                 print parent_node['_id'], parent_node['nodeChildren']
                 parent_node["nodeChildren"].append({
@@ -93,14 +91,14 @@ def add_child_node(request):
                 })
 
                 parent_node_update = Nodes().update(parent_node["_id"],
-                               parent_node["nodeDisplay"],
-                               parent_node["nodeDescription"],
-                               parent_node["nodeTags"],
-                               parent_node["nodeParents"],
-                               parent_node["nodeChildren"],
-                               parent_node["nodeVotes"],
-                               parent_node["nodeStatus"],
-                               parent_node["nodeCreateAt"])
+                                                    parent_node["nodeDisplay"],
+                                                    parent_node["nodeDescription"],
+                                                    parent_node["nodeTags"],
+                                                    parent_node["nodeParents"],
+                                                    parent_node["nodeChildren"],
+                                                    parent_node["nodeVotes"],
+                                                    parent_node["nodeStatus"],
+                                                    parent_node["nodeCreateAt"])
 
                 if parent_node_update:
                     print "update parent: key=", parent_node_update
@@ -226,3 +224,40 @@ def get_mindmap(request):
     else:  # only allow GET
         error = dict(success="false", data={}, error_message="Only GET allowed for getting the mindmap.")
         return JSONResponse(error)
+
+
+@csrf_exempt
+# /api/votes/
+def node_votes(request):
+    if request.method == 'GET':
+        print 'GET - why do you want to get this again?'
+        get_error = {
+            "success": "false",
+            "data": {},
+            "error_message": "GET - why do you want to get this again?"
+        }
+        return JSONResponse(get_error)
+    elif request.method == 'POST':
+        try:
+            vote_data = JSONParser().parse(request)
+            data_checker.check_vote_node(vote_data)
+
+            user_id = vote_data["userId"]
+            vote_type = vote_data["type"]
+            node_id = vote_data["nodeId"]
+
+            if vote_type == '1': # upvote
+                node_after_vote = Nodes().upvoteNode(node_id, user_id)
+            elif vote_type == '-1': # downvote
+                node_after_vote = Nodes().downvoteNode(node_id, user_id)
+
+            # node_after_vote = Nodes().retrieveById(node_id)
+            success = {
+                "success": "true",
+                "data": node_after_vote
+            }
+            return JSONResponse(success)
+        except Exception, e:
+            print 'POST exception ' + str(e)
+            error = dict(success="false", data={}, error_message=str(e))
+            return JSONResponse(error)

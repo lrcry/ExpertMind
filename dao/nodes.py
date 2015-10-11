@@ -86,7 +86,7 @@ class Nodes(object):
         node = conn.get('test_nodes', _id)
         _list = node['nodeChildren']
         if not _list:
-            _list = 'This node has no descendant node.'
+            _list = 'This node has no des   cendant node.'
         for child in _list:
             findChild(child, _list, conn)
         return _list
@@ -96,13 +96,13 @@ class Nodes(object):
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
         nodeStatus = int(node['nodeStatus']) + 1
-        vote = {'_id': str(user_id), 'type': '1'}
+        vote = {'userId': str(user_id), 'type': '1', 'voteDate': str(datetime.datetime.now())}
         assert isinstance(nodeVotes, list)
         nodeVotes.append(vote)
         patch = Patch()
         patch.replace('nodeStatus', str(nodeStatus)).replace('nodeVotes', nodeVotes)
         conn.patch('test_nodes', node_id, patch)
-        new_node = conn.get('test_nodes', 'node_id')
+        new_node = conn.get('test_nodes', node_id)
         return new_node
 
     def downvoteNode(self, node_id, user_id):
@@ -110,13 +110,13 @@ class Nodes(object):
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
         nodeStatus = int(node['nodeStatus']) - 1
-        vote = {'_id': str(user_id), 'type': '-1'}
+        vote = {'userId': str(user_id), 'type': '-1', 'voteDate': str(datetime.datetime.now())}
         assert isinstance(nodeVotes, list)
         nodeVotes.append(vote)
         patch = Patch()
         patch.replace('nodeStatus', str(nodeStatus)).replace('nodeVotes', nodeVotes)
         conn.patch('test_nodes', node_id, patch)
-        new_node = conn.get('test_nodes', 'node_id')
+        new_node = conn.get('test_nodes', node_id)
         return new_node
 
 
