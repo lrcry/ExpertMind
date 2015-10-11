@@ -1,20 +1,22 @@
-<div class="modal fade modal-add-node">
+<div class="modal fade modal-add-node" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Add new indicator</h4>
+                <h4 class="modal-title">
+                    <span ng-show="newNode.parent">Add child indicator</span>
+                    <span ng-hide="newNode.parent">Add root indicator</span>
+                </h4>
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
                     <div class="row">
                         <form class="form-horizontal form-add-new-node">
-                            <div class="form-group">
+                            <div class="form-group" ng-show="newNode.parent">
                                 <label class="col-sm-2 control-label">Parent Indicator</label>
                                 <div class="col-sm-10">
                                     <p class="form-control-static text-parent-node">
-                                        <span ng-show="newNode.parent">{{ newNode.parent.text }}</span>
-                                        <span ng-hide="newNode.parent">(No parent)</span>
+                                        {{ newNode.parent.text }}
                                     </p>
                                 </div>
                             </div>

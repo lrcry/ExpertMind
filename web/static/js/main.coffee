@@ -61,7 +61,8 @@ angular.module 'app', []
 
   $scope.$root.$on 'showAddNode', (event, node)->
     $scope.newNode.parent = node
-    $scope.$apply()
+    if !$scope.$$phase
+      $scope.$apply()
     $modal.modal('show')
 ]
 .controller 'MapCanvasController',  [ '$scope', '$http',  ($scope, $http)->
@@ -120,6 +121,7 @@ angular.module 'app', []
           ret.root_node_id = item._id
         else
           console.warn('Multiple root node detected, only the first one will be used.')
+      votes = summarize_votes(item.nodeVotes)
       ret.node_list.push
         id: item._id
         text: item.nodeDisplay
@@ -128,9 +130,22 @@ angular.module 'app', []
           name: "Admin"
         description: item.nodeDescription
         creation_time: item.nodeCreateAt
-        up_vote: 123
-        down_vote: 12
+        up_vote: votes.up
+        down_vote: votes.down
         sub_nodes: $.map item.nodeChildren, (obj)->obj._id
+    return ret
+
+  summarize_votes = (voteList)->
+    upVoteCount = 0
+    downVoteCount = 0
+    for vote in voteList
+      if vote.type == "1"
+        upVoteCount++
+      else if vote.type == "-1"
+        downVoteCount++
+    ret =
+      up: upVoteCount
+      down: downVoteCount
     return ret
 
   render = (stage, userData, mapData)->
@@ -204,17 +219,19 @@ angular.module 'app', []
         text: "\u21e7#{node.up_vote}"
         fontSize: INFO_TEXT_SIZE
         fontFamily: 'Calibri'
+        name: "btn-up-vote"
         fill: '#555'
         padding: 9
       nodeDownVoteBtn = new Konva.Text
         text: "\u21e9#{node.down_vote}"
         fontSize: INFO_TEXT_SIZE
         fontFamily: 'Calibri'
+        name: "btn-down-vote"
         fill: '#555'
         padding: 9
         x: nodeUpVoteBtn.getWidth()
-      setupAnchor(nodeUpVoteBtn, ->alert("Upvoted \"#{node.text}\""))
-      setupAnchor(nodeDownVoteBtn, ->alert("Downvoted \"#{node.text}\""))
+      setupAnchor(nodeUpVoteBtn, ->addVote(node, "1"))
+      setupAnchor(nodeDownVoteBtn, ->addVote(node, "-1"))
       nodeAuthorText = new Konva.Text
         text: "by #{node.author.name}"
         fontSize: INFO_TEXT_SIZE
@@ -264,13 +281,13 @@ angular.module 'app', []
         angle: 180
       nodeAddChildText = new Konva.Text
         text: '+'
-        fontSize: 24
+        fontSize: 32
         fontStyle: 'bold'
         fontFamily: 'Calibri'
         fill: '#375A7F'
         width: ADD_BTN_SIZE
         x:  - ADD_BTN_SIZE / 2.0
-        y:  -6
+        y:  - ADD_BTN_SIZE / 2.0 + 10
         align: 'center'
       nodeAddChildGroup = new Konva.Group
         name: 'add-child'
@@ -324,6 +341,67 @@ angular.module 'app', []
       nodeGroup.addName('node')
       nodeGroup.addName('collapsed') if node.sub_nodes.length > 0
       return nodeGroup
+
+    buildAddRootBtn = ->
+      nodeAddChildShape = new Konva.Circle
+        stroke: '#375A7F'
+        strokeWidth: 5
+        fill: '#ddd'
+        radius: ADD_BTN_SIZE / 2.0
+      nodeAddChildText = new Konva.Text
+        text: '+'
+        fontSize: 48
+        fontStyle: 'bold'
+        fontFamily: 'Calibri'
+        fill: '#375A7F'
+        width: ADD_BTN_SIZE
+        x:  - ADD_BTN_SIZE / 2.0
+        y:  - ADD_BTN_SIZE / 2.0 - 5
+        align: 'center'
+      nodeAddChildGroup = new Konva.Group
+        width: ADD_BTN_SIZE
+        height: ADD_BTN_SIZE
+        x: (stage.getWidth() - ADD_BTN_SIZE) / 2
+        y: (stage.getHeight() - ADD_BTN_SIZE) / 2
+      nodeAddChildGroup.add(nodeAddChildShape)
+      nodeAddChildGroup.add(nodeAddChildText)
+      setupAnchor nodeAddChildGroup, ->$scope.$emit('showAddNode', null)
+
+    addVote = (node, vote)->
+      $.blockUI
+        css:
+          border: 'none'
+          padding: '15px'
+          backgroundColor: '#000'
+          '-webkit-border-radius': '10px'
+          '-moz-border-radius': '10px'
+          opacity: .5
+          color: '#fff'
+      $http.post 'api/votes/',
+        userId: ""
+        type: vote
+        nodeId: node.id
+      .then (response)->
+        if response.data.success == 'true'
+          $http.get "api/nodes/#{node.id}"
+          .then (response)->
+            $.unblockUI()
+            if response.data.success == 'true'
+              votes = summarize_votes(response.data.data.nodeVotes)
+              nodeGroup = getNode(node.id)
+              nodeGroup.findOne('.btn-up-vote').text("\u21e7#{votes.up}")
+              nodeGroup.findOne('.btn-down-vote').text("\u21e9#{votes.down}")
+              stage.draw()
+            else
+              alert("[API Error] " + response.data.error_message)
+          , (response)->
+            $.unblockUI()
+            alert('[Request Error]' + response.status)
+        else
+          alert("[API Error] " + response.data.error_message)
+      , (response)->
+        $.unblockUI()
+        alert('[Request Error]' + response.status)
 
     layoutLevel = (level, angleStart, parentNodes)->
       spaceCount = 0
@@ -488,8 +566,12 @@ angular.module 'app', []
         stage.draw()
       layer.add(nodeGroup)
     rootNode = getNode(mapData.root_node_id)
-    layout(rootNode)
-    buildLinks(rootNode)
+    if rootNode
+      layout(rootNode)
+      buildLinks(rootNode)
+    else
+      layer.add(buildAddRootBtn())
+      $scope.$emit('showAddNode', null)
     stage.add(layer)
 
   init()
