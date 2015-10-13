@@ -72,6 +72,10 @@ def add_child_node(request):
 
             if 'nodeVotes' not in data:
                 data["nodeVotes"] = []
+
+            if 'nodeVotes' in data:
+                if 'comment' not in data['nodeVotes']:
+                    data['nodeVotes']['comment'] = ""
             node_status = 1
             created_child_node_key = Nodes().create(
                 data["nodeDisplay"],
@@ -245,11 +249,13 @@ def node_votes(request):
             user_id = vote_data["userId"]
             vote_type = vote_data["type"]
             node_id = vote_data["nodeId"]
+            node_comment = vote_data["comment"]
+            print node_comment + " as node comment"
 
             if vote_type == '1': # upvote
-                node_after_vote = Nodes().upvoteNode(node_id, user_id)
+                node_after_vote = Nodes().upvoteNode(node_id, user_id, node_comment)
             elif vote_type == '-1': # downvote
-                node_after_vote = Nodes().downvoteNode(node_id, user_id)
+                node_after_vote = Nodes().downvoteNode(node_id, user_id, node_comment)
 
             # node_after_vote = Nodes().retrieveById(node_id)
             success = {

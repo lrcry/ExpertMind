@@ -86,17 +86,17 @@ class Nodes(object):
         node = conn.get('test_nodes', _id)
         _list = node['nodeChildren']
         if not _list:
-            _list = 'This node has no des   cendant node.'
+            _list = 'This node has no descendant node.'
         for child in _list:
             findChild(child, _list, conn)
         return _list
 
-    def upvoteNode(self, node_id, user_id):
+    def upvoteNode(self, node_id, user_id, comment):
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
         nodeStatus = int(node['nodeStatus']) + 1
-        vote = {'userId': str(user_id), 'type': '1', 'voteDate': str(datetime.datetime.now())}
+        vote = {'userId': str(user_id), 'type': '1', 'voteDate': str(datetime.datetime.now()), 'comment': comment}
         assert isinstance(nodeVotes, list)
         nodeVotes.append(vote)
         patch = Patch()
@@ -105,12 +105,12 @@ class Nodes(object):
         new_node = conn.get('test_nodes', node_id)
         return new_node
 
-    def downvoteNode(self, node_id, user_id):
+    def downvoteNode(self, node_id, user_id, comment):
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
         nodeStatus = int(node['nodeStatus']) - 1
-        vote = {'userId': str(user_id), 'type': '-1', 'voteDate': str(datetime.datetime.now())}
+        vote = {'userId': str(user_id), 'type': '-1', 'voteDate': str(datetime.datetime.now()), 'comment': comment}
         assert isinstance(nodeVotes, list)
         nodeVotes.append(vote)
         patch = Patch()
