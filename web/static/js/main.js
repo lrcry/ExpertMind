@@ -77,13 +77,15 @@
       };
       return $scope.$root.$on('showAddNode', function(event, node) {
         $scope.newNode.parent = node;
-        $scope.$apply();
+        if (!$scope.$$phase) {
+          $scope.$apply();
+        }
         return $modal.modal('show');
       });
     }
   ]).controller('MapCanvasController', [
     '$scope', '$http', function($scope, $http) {
-      var init, pre_process, render;
+      var init, pre_process, render, summarize_votes;
       init = function() {
         var SCALE_MAX, SCALE_MIN, stage;
         SCALE_MIN = 0.2;
@@ -142,7 +144,7 @@
         });
       };
       pre_process = function(data) {
-        var i, item, len, ref, ret;
+        var i, item, len, ref, ret, votes;
         if (data.success !== 'true') {
           alert("[API Error] " + data.error_message);
           return false;
@@ -161,6 +163,7 @@
               console.warn('Multiple root node detected, only the first one will be used.');
             }
           }
+          votes = summarize_votes(item.nodeVotes);
           ret.node_list.push({
             id: item._id,
             text: item.nodeDisplay,
@@ -170,8 +173,8 @@
             },
             description: item.nodeDescription,
             creation_time: item.nodeCreateAt,
-            up_vote: 123,
-            down_vote: 12,
+            up_vote: votes.up,
+            down_vote: votes.down,
             sub_nodes: $.map(item.nodeChildren, function(obj) {
               return obj._id;
             })
@@ -179,8 +182,26 @@
         }
         return ret;
       };
+      summarize_votes = function(voteList) {
+        var downVoteCount, i, len, ret, upVoteCount, vote;
+        upVoteCount = 0;
+        downVoteCount = 0;
+        for (i = 0, len = voteList.length; i < len; i++) {
+          vote = voteList[i];
+          if (vote.type === "1") {
+            upVoteCount++;
+          } else if (vote.type === "-1") {
+            downVoteCount++;
+          }
+        }
+        ret = {
+          up: upVoteCount,
+          down: downVoteCount
+        };
+        return ret;
+      };
       render = function(stage, userData, mapData) {
-        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, buildLinks, buildNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
+        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, addVote, buildAddRootBtn, buildLinks, buildNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
         NODE_WIDTH = 200;
         TITLE_TEXT_SIZE = 18;
         INFO_TEXT_SIZE = 12;
@@ -271,6 +292,7 @@
             text: "\u21e7" + node.up_vote,
             fontSize: INFO_TEXT_SIZE,
             fontFamily: 'Calibri',
+            name: "btn-up-vote",
             fill: '#555',
             padding: 9
           });
@@ -278,15 +300,16 @@
             text: "\u21e9" + node.down_vote,
             fontSize: INFO_TEXT_SIZE,
             fontFamily: 'Calibri',
+            name: "btn-down-vote",
             fill: '#555',
             padding: 9,
             x: nodeUpVoteBtn.getWidth()
           });
           setupAnchor(nodeUpVoteBtn, function() {
-            return alert("Upvoted \"" + node.text + "\"");
+            return addVote(node, "1");
           });
           setupAnchor(nodeDownVoteBtn, function() {
-            return alert("Downvoted \"" + node.text + "\"");
+            return addVote(node, "-1");
           });
           nodeAuthorText = new Konva.Text({
             text: "by " + node.author.name,
@@ -343,13 +366,13 @@
           });
           nodeAddChildText = new Konva.Text({
             text: '+',
-            fontSize: 24,
+            fontSize: 32,
             fontStyle: 'bold',
             fontFamily: 'Calibri',
             fill: '#375A7F',
             width: ADD_BTN_SIZE,
             x: -ADD_BTN_SIZE / 2.0,
-            y: -6,
+            y: -ADD_BTN_SIZE / 2.0 + 10,
             align: 'center'
           });
           nodeAddChildGroup = new Konva.Group({
@@ -413,6 +436,79 @@
             nodeGroup.addName('collapsed');
           }
           return nodeGroup;
+        };
+        buildAddRootBtn = function() {
+          var nodeAddChildGroup, nodeAddChildShape, nodeAddChildText;
+          nodeAddChildShape = new Konva.Circle({
+            stroke: '#375A7F',
+            strokeWidth: 5,
+            fill: '#ddd',
+            radius: ADD_BTN_SIZE / 2.0
+          });
+          nodeAddChildText = new Konva.Text({
+            text: '+',
+            fontSize: 48,
+            fontStyle: 'bold',
+            fontFamily: 'Calibri',
+            fill: '#375A7F',
+            width: ADD_BTN_SIZE,
+            x: -ADD_BTN_SIZE / 2.0,
+            y: -ADD_BTN_SIZE / 2.0 - 5,
+            align: 'center'
+          });
+          nodeAddChildGroup = new Konva.Group({
+            width: ADD_BTN_SIZE,
+            height: ADD_BTN_SIZE,
+            x: (stage.getWidth() - ADD_BTN_SIZE) / 2,
+            y: (stage.getHeight() - ADD_BTN_SIZE) / 2
+          });
+          nodeAddChildGroup.add(nodeAddChildShape);
+          nodeAddChildGroup.add(nodeAddChildText);
+          return setupAnchor(nodeAddChildGroup, function() {
+            return $scope.$emit('showAddNode', null);
+          });
+        };
+        addVote = function(node, vote) {
+          $.blockUI({
+            css: {
+              border: 'none',
+              padding: '15px',
+              backgroundColor: '#000',
+              '-webkit-border-radius': '10px',
+              '-moz-border-radius': '10px',
+              opacity: .5,
+              color: '#fff'
+            }
+          });
+          return $http.post('api/votes/', {
+            userId: "",
+            type: vote,
+            nodeId: node.id
+          }).then(function(response) {
+            if (response.data.success === 'true') {
+              return $http.get("api/nodes/" + node.id).then(function(response) {
+                var nodeGroup, votes;
+                $.unblockUI();
+                if (response.data.success === 'true') {
+                  votes = summarize_votes(response.data.data.nodeVotes);
+                  nodeGroup = getNode(node.id);
+                  nodeGroup.findOne('.btn-up-vote').text("\u21e7" + votes.up);
+                  nodeGroup.findOne('.btn-down-vote').text("\u21e9" + votes.down);
+                  return stage.draw();
+                } else {
+                  return alert("[API Error] " + response.data.error_message);
+                }
+              }, function(response) {
+                $.unblockUI();
+                return alert('[Request Error]' + response.status);
+              });
+            } else {
+              return alert("[API Error] " + response.data.error_message);
+            }
+          }, function(response) {
+            $.unblockUI();
+            return alert('[Request Error]' + response.status);
+          });
         };
         layoutLevel = function(level, angleStart, parentNodes) {
           var angle, angleStep, base_offset_x, childNodes, first_angle, i, ind, j, k, len, len1, len2, parentNode, ref, spaceCount, spaceStart, subNode, subNodeCount, subNodeId;
@@ -641,8 +737,13 @@
           layer.add(nodeGroup);
         }
         rootNode = getNode(mapData.root_node_id);
-        layout(rootNode);
-        buildLinks(rootNode);
+        if (rootNode) {
+          layout(rootNode);
+          buildLinks(rootNode);
+        } else {
+          layer.add(buildAddRootBtn());
+          $scope.$emit('showAddNode', null);
+        }
         return stage.add(layer);
       };
       return init();
