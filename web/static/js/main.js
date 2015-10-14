@@ -6,13 +6,77 @@
       templateUrl: 'static/partial/modal-add-node.html',
       controller: 'ModalAddNodeController'
     };
+  }).directive('modalAddVote', function() {
+    return {
+      restrict: 'A',
+      templateUrl: 'static/partial/modal-add-vote.html',
+      controller: 'ModalAddVoteController'
+    };
+  }).directive('sidePanel', function() {
+    return {
+      restrict: 'A',
+      templateUrl: 'static/partial/side-panel.html',
+      controller: 'SidePanelController'
+    };
   }).directive('mapCanvas', function() {
     return {
       restrict: 'A',
       templateUrl: 'static/partial/map-canvas.html',
       controller: 'MapCanvasController'
     };
-  }).controller('RootController', ['$scope', '$http', function($scope, $http) {}]).controller('ModalAddNodeController', [
+  }).controller('RootController', ['$scope', '$http', function($scope, $http) {}]).controller('SidePanelController', [
+    '$scope', '$http', function($scope, $http) {
+      var $container;
+      $container = $('.side-panel-container');
+      $scope.$root.$on('selectNode', function(event, node) {
+        $container.addClass('active');
+        $scope.node = node;
+        if (!$scope.$$phase) {
+          return $scope.$apply();
+        }
+      });
+      return $scope.showAddVote = function() {
+        return $scope.$emit('showAddVote', $scope.node, "1");
+      };
+    }
+  ]).controller('ModalAddVoteController', [
+    '$scope', '$http', function($scope, $http) {
+      var $modal;
+      $modal = $('.modal-add-vote');
+      $scope.submit_vote = function() {
+        if (!$scope.comment || $scope.comment.length <= 0) {
+          alert('Please leave a comment!');
+          return;
+        }
+        $scope.requesting = true;
+        return $http.post('api/votes/', {
+          userId: "",
+          type: $scope.vote,
+          comment: $scope.comment,
+          nodeId: $scope.node.id
+        }).then(function(response) {
+          $scope.requesting = false;
+          if (response.data.success === 'true') {
+            $modal.modal('hide');
+            return $scope.$emit('updateNodeVotes', $scope.node);
+          } else {
+            return alert("[API Error] " + response.data.error_message);
+          }
+        }, function(response) {
+          $scope.requesting = false;
+          return alert('[Request Error]' + response.status);
+        });
+      };
+      return $scope.$root.$on('showAddVote', function(event, node, vote) {
+        $scope.node = node;
+        $scope.vote = vote;
+        if (!$scope.$$phase) {
+          $scope.$apply();
+        }
+        return $modal.modal('show');
+      });
+    }
+  ]).controller('ModalAddNodeController', [
     '$scope', '$http', function($scope, $http) {
       var $modal;
       $modal = $('.modal-add-node');
@@ -22,7 +86,7 @@
         description: ""
       };
       $scope.submit = function() {
-        var node;
+        var entity, node;
         node = $scope.newNode;
         if (node.title.length <= 0) {
           alert('Please input title!');
@@ -32,48 +96,31 @@
           alert('Please input description!');
           return;
         }
-        if (node.parent === null) {
-          $scope.requesting = true;
-          return $http.post('api/create_new_node/', {
-            nodeDisplay: node.title,
-            nodeDescription: node.description,
-            nodeTags: []
-          }).then(function(response) {
-            if (response.data.success === 'true') {
-              $scope.requesting = false;
-              return window.location.reload();
-            } else {
-              alert("[API Error] " + response.data.error_message);
-              return $scope.requesting = false;
+        entity = {
+          nodeDisplay: node.title,
+          nodeDescription: node.description,
+          userId: ""
+        };
+        if (node.parent !== null) {
+          entity.nodeParents = [
+            {
+              _id: node.parent.id
             }
-          }, function(response) {
-            alert('[Request Error]' + response.status);
-            return $scope.requesting = false;
-          });
-        } else {
-          $scope.requesting = true;
-          return $http.post('api/add_child_node/', {
-            nodeDisplay: node.title,
-            nodeDescription: node.description,
-            nodeTags: [],
-            nodeParents: [
-              {
-                _id: node.parent.id
-              }
-            ]
-          }).then(function(response) {
-            if (response.data.success === 'true') {
-              $scope.requesting = false;
-              return window.location.reload();
-            } else {
-              alert("[API Error] " + response.data.error_message);
-              return $scope.requesting = false;
-            }
-          }, function(response) {
-            alert('[Request Error]' + response.status);
-            return $scope.requesting = false;
-          });
+          ];
         }
+        $scope.requesting = true;
+        return $http.post('api/nodes/', entity).then(function(response) {
+          if (response.data.success === 'true') {
+            $scope.requesting = false;
+            return window.location.reload();
+          } else {
+            alert("[API Error] " + response.data.error_message);
+            return $scope.requesting = false;
+          }
+        }, function(response) {
+          alert('[Request Error]' + response.status);
+          return $scope.requesting = false;
+        });
       };
       return $scope.$root.$on('showAddNode', function(event, node) {
         $scope.newNode.parent = node;
@@ -85,7 +132,7 @@
     }
   ]).controller('MapCanvasController', [
     '$scope', '$http', function($scope, $http) {
-      var init, pre_process, render, summarize_votes;
+      var init, pre_process, render, summarize_and_optimize_votes;
       init = function() {
         var SCALE_MAX, SCALE_MIN, stage;
         SCALE_MIN = 0.2;
@@ -114,6 +161,9 @@
           var mouse, newScale, offset, scale;
           offset = stage.offset();
           mouse = stage.getPointerPosition();
+          if (!mouse) {
+            return;
+          }
           scale = stage.scale().x;
           newScale = scale + e.originalEvent.wheelDelta / 2000.0;
           newScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, newScale));
@@ -163,7 +213,7 @@
               console.warn('Multiple root node detected, only the first one will be used.');
             }
           }
-          votes = summarize_votes(item.nodeVotes);
+          votes = summarize_and_optimize_votes(item.nodeVotes);
           ret.node_list.push({
             id: item._id,
             text: item.nodeDisplay,
@@ -175,6 +225,7 @@
             creation_time: item.nodeCreateAt,
             up_vote: votes.up,
             down_vote: votes.down,
+            vote_list: item.nodeVotes,
             sub_nodes: $.map(item.nodeChildren, function(obj) {
               return obj._id;
             })
@@ -182,12 +233,16 @@
         }
         return ret;
       };
-      summarize_votes = function(voteList) {
-        var downVoteCount, i, len, ret, upVoteCount, vote;
-        upVoteCount = 0;
-        downVoteCount = 0;
+      summarize_and_optimize_votes = function(voteList) {
+        var downVoteCount, i, j, len, len1, ret, upVoteCount, vote;
         for (i = 0, len = voteList.length; i < len; i++) {
           vote = voteList[i];
+          vote.voteDate = moment.utc(vote.voteDate).local().format('YYYY/MM/DD HH:mm');
+        }
+        upVoteCount = 0;
+        downVoteCount = 0;
+        for (j = 0, len1 = voteList.length; j < len1; j++) {
+          vote = voteList[j];
           if (vote.type === "1") {
             upVoteCount++;
           } else if (vote.type === "-1") {
@@ -201,7 +256,7 @@
         return ret;
       };
       render = function(stage, userData, mapData) {
-        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, addVote, buildAddRootBtn, buildLinks, buildNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
+        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, buildAddRootBtn, buildLinks, buildNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
         NODE_WIDTH = 200;
         TITLE_TEXT_SIZE = 18;
         INFO_TEXT_SIZE = 12;
@@ -289,7 +344,7 @@
             align: 'center'
           });
           nodeUpVoteBtn = new Konva.Text({
-            text: "\u21e7" + node.up_vote,
+            text: "+" + node.up_vote,
             fontSize: INFO_TEXT_SIZE,
             fontFamily: 'Calibri',
             name: "btn-up-vote",
@@ -297,7 +352,7 @@
             padding: 9
           });
           nodeDownVoteBtn = new Konva.Text({
-            text: "\u21e9" + node.down_vote,
+            text: "-" + node.down_vote,
             fontSize: INFO_TEXT_SIZE,
             fontFamily: 'Calibri',
             name: "btn-down-vote",
@@ -306,10 +361,10 @@
             x: nodeUpVoteBtn.getWidth()
           });
           setupAnchor(nodeUpVoteBtn, function() {
-            return addVote(node, "1");
+            return $scope.$emit('showAddVote', node, "1");
           });
           setupAnchor(nodeDownVoteBtn, function() {
-            return addVote(node, "-1");
+            return $scope.$emit('showAddVote', node, "-1");
           });
           nodeAuthorText = new Konva.Text({
             text: "by " + node.author.name,
@@ -466,48 +521,6 @@
           nodeAddChildGroup.add(nodeAddChildText);
           return setupAnchor(nodeAddChildGroup, function() {
             return $scope.$emit('showAddNode', null);
-          });
-        };
-        addVote = function(node, vote) {
-          $.blockUI({
-            css: {
-              border: 'none',
-              padding: '15px',
-              backgroundColor: '#000',
-              '-webkit-border-radius': '10px',
-              '-moz-border-radius': '10px',
-              opacity: .5,
-              color: '#fff'
-            }
-          });
-          return $http.post('api/votes/', {
-            userId: "",
-            type: vote,
-            nodeId: node.id
-          }).then(function(response) {
-            if (response.data.success === 'true') {
-              return $http.get("api/nodes/" + node.id).then(function(response) {
-                var nodeGroup, votes;
-                $.unblockUI();
-                if (response.data.success === 'true') {
-                  votes = summarize_votes(response.data.data.nodeVotes);
-                  nodeGroup = getNode(node.id);
-                  nodeGroup.findOne('.btn-up-vote').text("\u21e7" + votes.up);
-                  nodeGroup.findOne('.btn-down-vote').text("\u21e9" + votes.down);
-                  return stage.draw();
-                } else {
-                  return alert("[API Error] " + response.data.error_message);
-                }
-              }, function(response) {
-                $.unblockUI();
-                return alert('[Request Error]' + response.status);
-              });
-            } else {
-              return alert("[API Error] " + response.data.error_message);
-            }
-          }, function(response) {
-            $.unblockUI();
-            return alert('[Request Error]' + response.status);
           });
         };
         layoutLevel = function(level, angleStart, parentNodes) {
@@ -709,6 +722,7 @@
             }
             active_node = this;
             toggleAddNodeBtn(this, true);
+            $scope.$emit('selectNode', map_nodes[this.id()]);
             return stage.draw();
           }).on('dragstart', function(e) {
             var j, len1, ref1, results;
@@ -744,7 +758,40 @@
           layer.add(buildAddRootBtn());
           $scope.$emit('showAddNode', null);
         }
-        return stage.add(layer);
+        stage.add(layer);
+        return $scope.$root.$on('updateNodeVotes', function(event, node) {
+          $.blockUI({
+            css: {
+              border: 'none',
+              padding: '15px',
+              backgroundColor: '#000',
+              '-webkit-border-radius': '10px',
+              '-moz-border-radius': '10px',
+              opacity: .5,
+              color: '#fff'
+            }
+          });
+          return $http.get("api/nodes/" + node.id).then(function(response) {
+            var dataObj, votes;
+            $.unblockUI();
+            if (response.data.success === 'true') {
+              dataObj = map_nodes["node-" + node.id];
+              dataObj.vote_list = response.data.data.nodeVotes;
+              votes = summarize_and_optimize_votes(dataObj.vote_list);
+              dataObj.down_vote = votes.down;
+              dataObj.up_vote = votes.up;
+              nodeGroup = getNode(node.id);
+              nodeGroup.findOne('.btn-up-vote').text("+" + votes.up);
+              nodeGroup.findOne('.btn-down-vote').text("-" + votes.down);
+              return stage.draw();
+            } else {
+              return alert("[API Error] " + response.data.error_message);
+            }
+          }, function(response) {
+            $.unblockUI();
+            return alert('[Request Error]' + response.status);
+          });
+        });
       };
       return init();
     }

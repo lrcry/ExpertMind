@@ -31,4 +31,20 @@ body {
       -ms-flex: 1;
           flex: 1;
 }
+.side-panel-container {
+  height: 100%;
+  width: 300px;
+  background-color: #fff;
+  box-shadow: 4px 0 4px rgba(0, 0, 0, 0.25);
+  z-index: 999;
+  overflow: auto;
+  position: fixed;
+  left: -300px;
+  top: 0;
+  -webkit-transition: left 300ms ease-in-out;
+          transition: left 300ms ease-in-out;
+}
+.side-panel-container.active {
+  left: 0;
+}
 /*# sourceMappingURL=main.css.map */

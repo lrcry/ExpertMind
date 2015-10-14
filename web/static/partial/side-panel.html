@@ -1,0 +1,28 @@
+<div class="container-fluid">
+    <div class="page-header h2">{{ node.text }}</div>
+    <p>{{ node.description }}</p>
+    <p><a class="btn btn-block btn-primary" ng-click="showAddVote()">Vote For It!</a></p>
+    <div class="page-header h3">
+        Vote History
+        <small>
+            <span class="text-success">+ {{ node.up_vote }}</span>
+            <span class="text-danger">- {{ node.down_vote }}</span>
+        </small>
+    </div>
+    <div class="vote-list">
+        <div class="vote-item media" ng-repeat="vote in node.vote_list | orderBy: '-voteDate'">
+            <div class="media-left">
+                <div class="media-object">
+                    <span class="glyphicon glyphicon-thumbs-up" ng-show="vote.type=='1'"></span>
+                    <span class="glyphicon glyphicon-thumbs-down" ng-show="vote.type=='-1'"></span>
+                </div>
+            </div>
+            <div class="media-body">
+                <p class="media-heading h4" ng-show="vote.comment.length>0">{{ vote.comment }}</p>
+                <p ng-show="vote.userId.length>0">By {{ vote.userId}}</p>
+                <p>{{ vote.voteDate }}</p>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>
