@@ -71,7 +71,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
   - Node operation
     - Create a new node by the following
 
-      *POST /api/create_new_node/*
+      *POST /api/node/*
 
       with the JSON body like
       ```json
@@ -85,7 +85,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
 
     - Add a child node to an existed node  
 
-      *POST /api/add_child_node/*
+      *POST /api/node/*
 
       with the JSON body like
       ```json
@@ -101,7 +101,7 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       If someone do this without logged in, just leave 'userId' as blank.
 
       *Note: in current version of the services, only one parent for each node will be taken into consideration. That means if you pass a JSON body with multiple nodeParents, the services will take the first parent as the parent of the child node to be added.*
-
+      ###*Also note: the difference between create a new node and add a child node to an existing node is the "nodeParents" in request body. If there is a parent node, then the request will lead to a new child node, otherwise a new root node.*
     - Get information of a Node by its ID
 
       *GET /api/nodes/[node_id]*

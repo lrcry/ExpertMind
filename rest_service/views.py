@@ -16,15 +16,30 @@ class JSONResponse(HttpResponse):
 
 
 @csrf_exempt
+# GET /nodes
+# POST /nodes
+def node_creation(request):
+    if request.method == 'GET':
+        node_response = get_mindmap(request)
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        if 'nodeParents' not in data:
+            node_response = create_new_node(data)
+        else:
+            node_response = add_child_node(data)
+    return node_response
+
+
+@csrf_exempt
 # POST /expertmind_service/create_new_node/
 # Accept application/json and the following keys:
 #   nodeDisplay
 #   nodeDescription
-def create_new_node(request):
-    if request.method == 'POST':
-        print request
+def create_new_node(data):
+    # if request.method == 'POST':
+    #     print request
         try:
-            data = JSONParser().parse(request)
+            # data = JSONParser().parse(request)
             data_checker.check_create_new_node(data)
         except Exception, e:
             error = dict(success="false", data={}, error_message=str(e))
@@ -46,9 +61,9 @@ def create_new_node(request):
                 "error_message": "Orchestrate service temporarily unavailable."
             }
         return JSONResponse(create_node_response)
-    else:  # only allow POST
-        error = dict(success="false", data={}, error_message="Only POST allowed for node creation.")
-        return JSONResponse(error)
+    # else:  # only allow POST
+    #     error = dict(success="false", data={}, error_message="Only POST allowed for node creation.")
+    #     return JSONResponse(error)
 
 
 @csrf_exempt
@@ -58,10 +73,10 @@ def create_new_node(request):
 #   nodeDescription
 #   nodeParents [ {"_id" : "..." } ]
 #   userId
-def add_child_node(request):
-    if request.method == 'POST':
+def add_child_node(data):
+    # if request.method == 'POST':
         try:
-            data = JSONParser().parse(request)
+            # data = JSONParser().parse(request)
             parent_node = data_checker.check_add_child_node(data)
 
             if 'nodeTags' not in data:
@@ -72,11 +87,13 @@ def add_child_node(request):
 
             if 'nodeVotes' not in data:
                 data["nodeVotes"] = []
-
-            if 'nodeVotes' in data:
+            else:
                 if 'comment' not in data['nodeVotes']:
-                    data['nodeVotes']['comment'] = ""
+                    data["nodeVotes"]["comment"] = ""
+
+            print 'something wrong before create node vote comment'
             node_status = 1
+
             created_child_node_key = Nodes().create(
                 data["nodeDisplay"],
                 data["nodeDescription"],
@@ -106,7 +123,6 @@ def add_child_node(request):
 
                 if parent_node_update:
                     print "update parent: key=", parent_node_update
-                    # TODO put an add node operation to this child node, and update operation to its parent with user ID
                     map_nodes = Nodes().retrieveAll()
                     add_child_resp = {
                         "success": "true",
@@ -121,9 +137,9 @@ def add_child_node(request):
             print e
             error = dict(success="false", data={}, error_message=str(e))
             return JSONResponse(error)
-    else:  # only allow POST
-        error = dict(success="false", data={}, error_message="Only POST allowed for adding a child node.")
-        return JSONResponse(error)
+    # else:  # only allow POST
+    #     error = dict(success="false", data={}, error_message="Only POST allowed for adding a child node.")
+    #     return JSONResponse(error)
 
 
 @csrf_exempt
