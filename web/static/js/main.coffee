@@ -15,9 +15,9 @@ angular.module 'app', []
   restrict: 'A'
   templateUrl: 'static/partial/map-canvas.html'
   controller: 'MapCanvasController'
-.controller 'RootController', [ '$scope', '$http',  ($scope, $http)->
+.controller 'RootController', ['$scope', '$http', ($scope, $http)->
 ]
-.controller 'SidePanelController', [ '$scope', '$http',  ($scope, $http)->
+.controller 'SidePanelController', ['$scope', '$http', ($scope, $http)->
   $container = $('.side-panel-container')
   $scope.$root.$on 'selectNode', (event, node)->
     $container.addClass('active')
@@ -26,6 +26,9 @@ angular.module 'app', []
       $scope.$apply()
   $scope.showAddVote = ->
     $scope.$emit('showAddVote', $scope.node, "1")
+  $scope.close = ->
+    $container.removeClass('active')
+    return undefined
 ]
 .controller 'ModalAddVoteController', ['$scope', '$http', ($scope, $http)->
   $modal = $('.modal-add-vote')
@@ -57,7 +60,7 @@ angular.module 'app', []
       $scope.$apply()
     $modal.modal('show')
 ]
-.controller 'ModalAddNodeController', [ '$scope', '$http',  ($scope, $http)->
+.controller 'ModalAddNodeController', ['$scope', '$http', ($scope, $http)->
   $modal = $('.modal-add-node')
   $scope.newNode =
     parent: null
@@ -98,7 +101,7 @@ angular.module 'app', []
       $scope.$apply()
     $modal.modal('show')
 ]
-.controller 'MapCanvasController',  [ '$scope', '$http',  ($scope, $http)->
+.controller 'MapCanvasController', ['$scope', '$http', ($scope, $http)->
   init = ->
     SCALE_MIN = 0.2
     SCALE_MAX = 2.0
@@ -149,7 +152,7 @@ angular.module 'app', []
       return false
     ret =
       root_node_id: null
-      node_list : []
+      node_list: []
     for item in data.data
       if item.nodeParents.length <= 0
         if ret.root_node_id == null
@@ -168,7 +171,7 @@ angular.module 'app', []
         up_vote: votes.up
         down_vote: votes.down
         vote_list: item.nodeVotes
-        sub_nodes: $.map item.nodeChildren, (obj)->obj._id
+        sub_nodes: $.map item.nodeChildren, (obj)-> obj._id
     return ret
 
   summarize_and_optimize_votes = (voteList)->
@@ -268,8 +271,8 @@ angular.module 'app', []
         fill: '#555'
         padding: 9
         x: nodeUpVoteBtn.getWidth()
-      setupAnchor nodeUpVoteBtn, ->$scope.$emit('showAddVote', node, "1")
-      setupAnchor nodeDownVoteBtn, ->$scope.$emit('showAddVote', node, "-1")
+      setupAnchor nodeUpVoteBtn, -> $scope.$emit('showAddVote', node, "1")
+      setupAnchor nodeDownVoteBtn, -> $scope.$emit('showAddVote', node, "-1")
       nodeAuthorText = new Konva.Text
         text: "by #{node.author.name}"
         fontSize: INFO_TEXT_SIZE
@@ -324,8 +327,8 @@ angular.module 'app', []
         fontFamily: 'Calibri'
         fill: '#375A7F'
         width: ADD_BTN_SIZE
-        x:  - ADD_BTN_SIZE / 2.0
-        y:  - ADD_BTN_SIZE / 2.0 + 10
+        x: -ADD_BTN_SIZE / 2.0
+        y: -ADD_BTN_SIZE / 2.0 + 10
         align: 'center'
       nodeAddChildGroup = new Konva.Group
         name: 'add-child'
@@ -335,7 +338,7 @@ angular.module 'app', []
         y: nodeRect.height() - ADD_BTN_SIZE / 2.0
       nodeAddChildGroup.add(nodeAddChildShape)
       nodeAddChildGroup.add(nodeAddChildText)
-      setupAnchor nodeAddChildGroup, ->$scope.$emit('showAddNode', node)
+      setupAnchor nodeAddChildGroup, -> $scope.$emit('showAddNode', node)
       nodeGroup = new Konva.Group
         width: nodeRect.width()
         height: nodeRect.height()
@@ -393,8 +396,8 @@ angular.module 'app', []
         fontFamily: 'Calibri'
         fill: '#375A7F'
         width: ADD_BTN_SIZE
-        x:  - ADD_BTN_SIZE / 2.0
-        y:  - ADD_BTN_SIZE / 2.0 - 5
+        x: -ADD_BTN_SIZE / 2.0
+        y: -ADD_BTN_SIZE / 2.0 - 5
         align: 'center'
       nodeAddChildGroup = new Konva.Group
         width: ADD_BTN_SIZE
@@ -403,7 +406,7 @@ angular.module 'app', []
         y: (stage.getHeight() - ADD_BTN_SIZE) / 2
       nodeAddChildGroup.add(nodeAddChildShape)
       nodeAddChildGroup.add(nodeAddChildText)
-      setupAnchor nodeAddChildGroup, ->$scope.$emit('showAddNode', null)
+      setupAnchor nodeAddChildGroup, -> $scope.$emit('showAddNode', null)
 
     layoutLevel = (level, angleStart, parentNodes)->
       spaceCount = 0
@@ -424,8 +427,8 @@ angular.module 'app', []
         for subNodeId in map_nodes[parentNode.getId()].sub_nodes
           subNode = getNode(subNodeId)
           subNode.setPosition
-            x: base_offset_x + Math.cos(angle) * NODE_WIDTH * level * 1.2
-            y: (stage.getHeight() - subNode.getHeight()) / 2 + Math.sin(angle) * NODE_WIDTH * level * 0.8
+            x: base_offset_x + Math.cos(angle) * NODE_WIDTH * level * 1.6
+            y: (stage.getHeight() - subNode.getHeight()) / 2 + Math.sin(angle) * NODE_WIDTH * level * 1.0
           childNodes.push(subNode)
           if childNodes.length == 1
             first_angle = angle
@@ -462,7 +465,7 @@ angular.module 'app', []
           x1, y1 + h1 / 2.0,
           x2 + w2 + margin.right, y2 + h2 / 2.0
         ]
-      if x1 + w1< x2 - margin.left # sub node at right side
+      if x1 + w1 < x2 - margin.left # sub node at right side
         return [
           x1 + w1, y1 + h1 / 2.0,
           x2 - margin.left, y2 + h2 / 2.0
@@ -534,12 +537,25 @@ angular.module 'app', []
         y: height
       .play()
 
+    centeringNode = (node)->
+      pos = node.position()
+      scale = stage.scale()
+      offsetX = (pos.x + node.width()  / 2.0) - stage.width() / 2.0 / scale.x
+      offsetY = (pos.y + node.height() / 2.0) - stage.height() / 2.0 / scale.y
+      new Konva.Tween
+        node: stage
+        duration: 0.2
+        easing: Konva.Easings.EaseInOut
+        offsetX: offsetX
+        offsetY: offsetY
+      .play()
+
     for node in mapData.node_list
       nodeId = "node-" + node.id
       map_nodes[nodeId] = node
       nodeGroup = buildNode(node)
       nodeGroup.setId(nodeId)
-      nodeGroup.on 'mousedown touchstart', ->
+      nodeGroup.on 'click tap', ->
         @.moveToTop()
         if active_node == null or active_node != @
           for bg in @.find('.node-bg')
@@ -551,6 +567,10 @@ angular.module 'app', []
         active_node = @
         toggleAddNodeBtn(@, true)
         $scope.$emit('selectNode', map_nodes[@.id()])
+        node = @
+        setTimeout ->
+          centeringNode(node)
+        , 300
         stage.draw()
       .on 'dragstart', (e)->
         for node in layer.find(".node")
@@ -591,7 +611,7 @@ angular.module 'app', []
       .then (response)->
         $.unblockUI()
         if response.data.success == 'true'
-          dataObj = map_nodes["node-"+node.id]
+          dataObj = map_nodes["node-" + node.id]
           dataObj.vote_list = response.data.data.nodeVotes
           votes = summarize_and_optimize_votes(dataObj.vote_list)
           dataObj.down_vote = votes.down

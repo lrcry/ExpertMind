@@ -47,4 +47,9 @@ body {
 .side-panel-container.active {
   left: 0;
 }
+.side-panel-container .btn-close-wrapper {
+  position: absolute;
+  right: 3px;
+  top: 0;
+}
 /*# sourceMappingURL=main.css.map */

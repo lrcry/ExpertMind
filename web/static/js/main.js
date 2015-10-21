@@ -35,8 +35,12 @@
           return $scope.$apply();
         }
       });
-      return $scope.showAddVote = function() {
+      $scope.showAddVote = function() {
         return $scope.$emit('showAddVote', $scope.node, "1");
+      };
+      return $scope.close = function() {
+        $container.removeClass('active');
+        return void 0;
       };
     }
   ]).controller('ModalAddVoteController', [
@@ -256,7 +260,7 @@
         return ret;
       };
       render = function(stage, userData, mapData) {
-        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, buildAddRootBtn, buildLinks, buildNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
+        var ADD_BTN_SIZE, INFO_TEXT_SIZE, NODE_WIDTH, TITLE_TEXT_SIZE, active_node, buildAddRootBtn, buildLinks, buildNode, centeringNode, computeLinkPoints, drag_anchor, getNode, hideNodeTree, i, layer, layout, layoutLevel, len, map_nodes, moveSubNodes, node, nodeGroup, nodeId, ref, rootNode, setupAnchor, toggleAddNodeBtn, toggleNode, updateParentLinks;
         NODE_WIDTH = 200;
         TITLE_TEXT_SIZE = 18;
         INFO_TEXT_SIZE = 12;
@@ -550,8 +554,8 @@
               subNodeId = ref[k];
               subNode = getNode(subNodeId);
               subNode.setPosition({
-                x: base_offset_x + Math.cos(angle) * NODE_WIDTH * level * 1.2,
-                y: (stage.getHeight() - subNode.getHeight()) / 2 + Math.sin(angle) * NODE_WIDTH * level * 0.8
+                x: base_offset_x + Math.cos(angle) * NODE_WIDTH * level * 1.6,
+                y: (stage.getHeight() - subNode.getHeight()) / 2 + Math.sin(angle) * NODE_WIDTH * level * 1.0
               });
               childNodes.push(subNode);
               if (childNodes.length === 1) {
@@ -695,6 +699,20 @@
             y: height
           }).play();
         };
+        centeringNode = function(node) {
+          var offsetX, offsetY, pos, scale;
+          pos = node.position();
+          scale = stage.scale();
+          offsetX = (pos.x + node.width() / 2.0) - stage.width() / 2.0 / scale.x;
+          offsetY = (pos.y + node.height() / 2.0) - stage.height() / 2.0 / scale.y;
+          return new Konva.Tween({
+            node: stage,
+            duration: 0.2,
+            easing: Konva.Easings.EaseInOut,
+            offsetX: offsetX,
+            offsetY: offsetY
+          }).play();
+        };
         ref = mapData.node_list;
         for (i = 0, len = ref.length; i < len; i++) {
           node = ref[i];
@@ -702,7 +720,7 @@
           map_nodes[nodeId] = node;
           nodeGroup = buildNode(node);
           nodeGroup.setId(nodeId);
-          nodeGroup.on('mousedown touchstart', function() {
+          nodeGroup.on('click tap', function() {
             var bg, j, k, len1, len2, ref1, ref2;
             this.moveToTop();
             if (active_node === null || active_node !== this) {
@@ -723,6 +741,10 @@
             active_node = this;
             toggleAddNodeBtn(this, true);
             $scope.$emit('selectNode', map_nodes[this.id()]);
+            node = this;
+            setTimeout(function() {
+              return centeringNode(node);
+            }, 300);
             return stage.draw();
           }).on('dragstart', function(e) {
             var j, len1, ref1, results;
