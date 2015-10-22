@@ -6,6 +6,17 @@ __author__ = 'hansmong'
 
 
 def check_add_child_node(data):
+    """ Check data when adding a new child node
+    To be more specific, the following keys will be checked
+        nodeDisplay
+        nodeDescription
+        nodeTags
+        nodeParents
+
+    :param data: new child node json data
+    :return: the parent node of check for update reason
+    """
+
     # check nodeDisplay
     """
 
@@ -41,6 +52,17 @@ def check_add_child_node(data):
 
 
 def check_create_new_node(data):
+    """ Check json data performing when create a new (root) node
+    This function will check the required keys and values in input json data
+    To be more specific, the following keys are checked
+        nodeDisplay
+        nodeDescription
+        nodeTags
+
+    :param data: new node data
+    :return: nothing
+    """
+
     # check nodeDisplay
     if 'nodeDisplay' not in data:
         raise ValueError("No nodeDisplay in given node.")
@@ -63,6 +85,16 @@ def check_create_new_node(data):
 
 # check input vote on a node
 def check_vote_node(data):
+    """ Check votes on a node
+    The following keys are to be checked
+        userId
+        type
+        nodeId
+
+    :param data: json data of a vote
+    :return: nothing
+    """
+
     if 'userId' not in data: # not login
         # raise ValueError("No userId in given vote.")
         data['userId'] = ""

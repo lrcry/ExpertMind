@@ -6,7 +6,9 @@ import data_checker
 from dao.nodes import Nodes
 import json
 
-
+"""
+Nodes services defined here
+"""
 # Create your views here.
 class JSONResponse(HttpResponse):
     def __init__(self, data, **kwargs):
@@ -16,9 +18,14 @@ class JSONResponse(HttpResponse):
 
 
 @csrf_exempt
-# GET /nodes
-# POST /nodes
 def node_creation(request):
+    """
+    GET /api/nodes to get all the nodes from the database
+    POST /api/nodes to create a new node to the database
+    :param request: HTTP request of service
+    :return: JSON response which contains the result of get/create node
+    """
+
     if request.method == 'GET':
         node_response = get_mindmap(request)
     elif request.method == 'POST':
@@ -31,120 +38,13 @@ def node_creation(request):
 
 
 @csrf_exempt
-# POST /expertmind_service/create_new_node/
-# Accept application/json and the following keys:
-#   nodeDisplay
-#   nodeDescription
-def create_new_node(data):
-    # if request.method == 'POST':
-    #     print request
-        try:
-            # data = JSONParser().parse(request)
-            data_checker.check_create_new_node(data)
-        except Exception, e:
-            error = dict(success="false", data={}, error_message=str(e))
-            return JSONResponse(error)
-
-        created_node_key = Nodes().create(data["nodeDisplay"], data["nodeDescription"], data["nodeTags"], [],
-                              [], [], 1)
-        if created_node_key:  # succeeded
-            print 'create node: key=', created_node_key
-            map_nodes = Nodes().retrieveAll()
-            create_node_response = {
-                "success": "true",
-                "data": map_nodes
-            }
-        else:
-            create_node_response = {
-                "success": "false",
-                "data": {},
-                "error_message": "Orchestrate service temporarily unavailable."
-            }
-        return JSONResponse(create_node_response)
-    # else:  # only allow POST
-    #     error = dict(success="false", data={}, error_message="Only POST allowed for node creation.")
-    #     return JSONResponse(error)
-
-
-@csrf_exempt
-# POST /expertmind_service/add_child_node/
-# Accept application/json and the following keys:
-#   nodeDisplay
-#   nodeDescription
-#   nodeParents [ {"_id" : "..." } ]
-#   userId
-def add_child_node(data):
-    # if request.method == 'POST':
-        try:
-            # data = JSONParser().parse(request)
-            parent_node = data_checker.check_add_child_node(data)
-
-            if 'nodeTags' not in data:
-                data["nodeTags"] = []  # not required
-
-            if 'nodeChildren' not in data:
-                data["nodeChildren"] = []
-
-            if 'nodeVotes' not in data:
-                data["nodeVotes"] = []
-            else:
-                if 'comment' not in data['nodeVotes']:
-                    data["nodeVotes"]["comment"] = ""
-
-            print 'something wrong before create node vote comment'
-            node_status = 1
-
-            created_child_node_key = Nodes().create(
-                data["nodeDisplay"],
-                data["nodeDescription"],
-                data["nodeTags"],
-                data["nodeParents"],
-                data["nodeChildren"],
-                data["nodeVotes"],
-                node_status
-            )
-
-            if created_child_node_key:
-                print 'add child node: key=', created_child_node_key
-                print parent_node['_id'], parent_node['nodeChildren']
-                parent_node["nodeChildren"].append({
-                    "_id": created_child_node_key
-                })
-
-                parent_node_update = Nodes().update(parent_node["_id"],
-                                                    parent_node["nodeDisplay"],
-                                                    parent_node["nodeDescription"],
-                                                    parent_node["nodeTags"],
-                                                    parent_node["nodeParents"],
-                                                    parent_node["nodeChildren"],
-                                                    parent_node["nodeVotes"],
-                                                    parent_node["nodeStatus"],
-                                                    parent_node["nodeCreateAt"])
-
-                if parent_node_update:
-                    print "update parent: key=", parent_node_update
-                    map_nodes = Nodes().retrieveAll()
-                    add_child_resp = {
-                        "success": "true",
-                        "data": map_nodes
-                    }
-                else:
-                    raise ValueError("Update parent node failed during adding a child node.")
-            else:
-                raise ValueError("Add child node failed.")
-            return JSONResponse(add_child_resp)
-        except Exception, e:
-            print e
-            error = dict(success="false", data={}, error_message=str(e))
-            return JSONResponse(error)
-    # else:  # only allow POST
-    #     error = dict(success="false", data={}, error_message="Only POST allowed for adding a child node.")
-    #     return JSONResponse(error)
-
-
-@csrf_exempt
-# GET /expertmind_service/get_node_by_id/[node_id]
 def get_node_by_id(request, node_id):
+    """ Get a node by its ID
+    GET /api/nodes/{node_id}
+    :param request:
+    :param node_id:
+    :return:
+    """
     if request.method == 'GET':
         try:
             if node_id == '':
@@ -174,8 +74,13 @@ def get_node_by_id(request, node_id):
 
 
 @csrf_exempt
-# GET /expertmind_service/get_descendant_nodes/[node_id]
 def get_descendant_nodes(request, node_id):
+    """ Get all descendant nodes of a node
+    GET /api/nodes/{node_id}/descendant
+    :param request:
+    :param node_id:
+    :return:
+    """
     if request.method == 'GET':
         try:
             if node_id == '':
@@ -199,8 +104,13 @@ def get_descendant_nodes(request, node_id):
 
 
 @csrf_exempt
-# GET /expertmind_service/get_child_nodes/[node_id]
 def get_child_nodes(request, node_id):
+    """ Get all the direct children of a node
+    GET /api/nodes/{node_id}/children
+    :param request:
+    :param node_id:
+    :return:
+    """
     if request.method == 'GET':
         try:
             if node_id == '':
@@ -224,8 +134,12 @@ def get_child_nodes(request, node_id):
 
 
 @csrf_exempt
-# GET /expertmind_service/get_mindmap/
 def get_mindmap(request):
+    """
+    Service for getting all the nodes
+    :param request:
+    :return:
+    """
     if request.method == 'GET':
         try:
             node_list = Nodes().retrieveAll()
@@ -247,8 +161,12 @@ def get_mindmap(request):
 
 
 @csrf_exempt
-# /api/votes/
 def node_votes(request):
+    """ Create a new vote on a node
+    POST /api/votes
+    :param request:
+    :return:
+    """
     if request.method == 'GET':
         print 'GET - why do you want to get this again?'
         get_error = {
@@ -283,3 +201,103 @@ def node_votes(request):
             print 'POST exception ' + str(e)
             error = dict(success="false", data={}, error_message=str(e))
             return JSONResponse(error)
+
+@csrf_exempt
+def create_new_node(data):
+    """
+    Service support for creating a new node
+    :param data:
+    :return:
+    """
+    try:
+        data_checker.check_create_new_node(data)
+    except Exception, e:
+        error = dict(success="false", data={}, error_message=str(e))
+        return JSONResponse(error)
+
+    created_node_key = Nodes().create(data["nodeDisplay"], data["nodeDescription"], data["nodeTags"], [],
+                          [], [], 1)
+    if created_node_key:  # succeeded
+        print 'create node: key=', created_node_key
+        map_nodes = Nodes().retrieveAll()
+        create_node_response = {
+            "success": "true",
+            "data": map_nodes
+        }
+    else:
+        create_node_response = {
+            "success": "false",
+            "data": {},
+            "error_message": "Orchestrate service temporarily unavailable."
+        }
+    return JSONResponse(create_node_response)
+
+
+@csrf_exempt
+def add_child_node(data):
+    """
+    Service support of add a child node
+    :param data:
+    :return:
+    """
+    try:
+        parent_node = data_checker.check_add_child_node(data)
+
+        if 'nodeTags' not in data:
+            data["nodeTags"] = []  # not required
+
+        if 'nodeChildren' not in data:
+            data["nodeChildren"] = []
+
+        if 'nodeVotes' not in data:
+            data["nodeVotes"] = []
+        else:
+            if 'comment' not in data['nodeVotes']:
+                data["nodeVotes"]["comment"] = ""
+
+        print 'something wrong before create node vote comment'
+        node_status = 1
+
+        created_child_node_key = Nodes().create(
+            data["nodeDisplay"],
+            data["nodeDescription"],
+            data["nodeTags"],
+            data["nodeParents"],
+            data["nodeChildren"],
+            data["nodeVotes"],
+            node_status
+        )
+
+        if created_child_node_key:
+            print 'add child node: key=', created_child_node_key
+            print parent_node['_id'], parent_node['nodeChildren']
+            parent_node["nodeChildren"].append({
+                "_id": created_child_node_key
+            })
+
+            parent_node_update = Nodes().update(parent_node["_id"],
+                                                parent_node["nodeDisplay"],
+                                                parent_node["nodeDescription"],
+                                                parent_node["nodeTags"],
+                                                parent_node["nodeParents"],
+                                                parent_node["nodeChildren"],
+                                                parent_node["nodeVotes"],
+                                                parent_node["nodeStatus"],
+                                                parent_node["nodeCreateAt"])
+
+            if parent_node_update:
+                print "update parent: key=", parent_node_update
+                map_nodes = Nodes().retrieveAll()
+                add_child_resp = {
+                    "success": "true",
+                    "data": map_nodes
+                }
+            else:
+                raise ValueError("Update parent node failed during adding a child node.")
+        else:
+            raise ValueError("Add child node failed.")
+        return JSONResponse(add_child_resp)
+    except Exception, e:
+        print e
+        error = dict(success="false", data={}, error_message=str(e))
+        return JSONResponse(error)

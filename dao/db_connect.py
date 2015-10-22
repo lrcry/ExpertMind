@@ -1,7 +1,10 @@
-__author__ = 'YUN'
 from porc import Client
 
+__author__ = 'YUN'
 
+
+# this class is created for connecting to orchestrate online database
+# also this file is where the API key hardcoded
 class ConnectDB:
 
     def __init__(self):

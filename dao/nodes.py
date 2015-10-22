@@ -4,15 +4,35 @@ import datetime
 from db_connect import ConnectDB
 from porc import Patch
 
-
+"""
+Nodes class defines all the operations can be done on a (set of) Node(s)
+The operations contains:
+   operations on a single node: create, update, delete, upvote, downvote, retrieve by ID
+   operations on a set of node: retrieve all, retrieve children, retrieve descendant nodes
+"""
 class Nodes(object):
     __author__ = 'Solki'
 
     def __init__(self):
         pass
 
+    # create a new node
     # add parent check has been done by service
+    #
     def create(self, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus):
+        """ Create a new node
+        The check of node data has been completed by service
+
+        :param nodeDisplay: display name of a node
+        :param nodeDescription: description of a node
+        :param nodeTags: tags of a node
+        :param nodeParents: parent node ID of this node
+        :param nodeChildren: children nodes (if already has)
+        :param nodeVotes: votes on node
+        :param nodeStatus: status of node
+        :return: a key of the node as an identification
+        """
+
         current_time = datetime.datetime.now()
         conn = ConnectDB().connect()
         node = conn.post('test_nodes', {
@@ -36,12 +56,21 @@ class Nodes(object):
         return nodeKey
 
     def retrieveById(self, _id):
+        """ Retrieve a node by its ID
+
+        :param _id: node ID
+        :return: node object
+        """
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', _id)
         print node.status_code
         return node
 
     def retrieveAll(self):
+        """ Retrieve all the nodes from database
+
+        :return: array of all the nodes
+        """
         conn = ConnectDB().connect()
         nodes = conn.list('test_nodes').all()
         list = []
@@ -51,6 +80,19 @@ class Nodes(object):
 
     def update(self, _id, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus,
                nodeCreateAt):
+        """ Update an existing node in database
+
+        :param _id: node ID
+        :param nodeDisplay: display name of a node
+        :param nodeDescription: description
+        :param nodeTags: tags of the node
+        :param nodeParents: parent of the node
+        :param nodeChildren: children nodes of the node
+        :param nodeVotes: votes on the node
+        :param nodeStatus: node status
+        :param nodeCreateAt: node creation time
+        :return: the key (ID) of the node
+        """
         conn = ConnectDB().connect()
         update_result = conn.put('test_nodes', _id, {
             "nodeDisplay": nodeDisplay,
@@ -64,16 +106,25 @@ class Nodes(object):
             "_id": _id
         })
 
-        nodeKey = update_result.key
-        return nodeKey
+        node_key = update_result.key
+        return node_key
+
 
     def delete(self, _id):
+        """ Delete a node from database
+
+        :param _id: node ID
+        :return: nothing
+        """
         conn = ConnectDB().connect()
         conn.delete('test_nodes', _id)
 
-    # update the corresponding table like votes, nodes who are parents or children of the deleted node
-
     def retrieveChild(self, _id):
+        """ Retrieve all direct children nodes of this node
+
+        :param _id: node ID
+        :return: all the children nodes of this node
+        """
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', _id)
         _list = node['nodeChildren']
@@ -82,6 +133,11 @@ class Nodes(object):
         return _list
 
     def retrieveDescendant(self, _id):
+        """ Retrieve all the descendant nodes of this node
+
+        :param _id: node ID
+        :return: descendant nodes of the node
+        """
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', _id)
         _list = node['nodeChildren']
@@ -92,6 +148,13 @@ class Nodes(object):
         return _list
 
     def upvoteNode(self, node_id, user_id, comment):
+        """ Vote up on a node
+
+        :param node_id: ID of node
+        :param user_id: ID of user (not required)
+        :param comment: Comment on the vote
+        :return: node object after voting
+        """
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
@@ -106,6 +169,13 @@ class Nodes(object):
         return new_node
 
     def downvoteNode(self, node_id, user_id, comment):
+        """ Voting down on a node
+
+        :param node_id: ID of node
+        :param user_id: ID of user (not required)
+        :param comment: Comment on the vote
+        :return: node object after voting
+        """
         conn = ConnectDB().connect()
         node = conn.get('test_nodes', node_id)
         nodeVotes = node['nodeVotes']
