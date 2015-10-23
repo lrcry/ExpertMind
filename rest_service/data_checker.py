@@ -5,6 +5,9 @@ from dao.nodes import Nodes
 __author__ = 'hansmong'
 
 
+PERMITTED_OPERATION_LIST = ['CREATE_NEW_NODE', 'ADD_CHILD_NODE', 'VOTE_UP', 'VOTE_DOWN']
+
+
 def check_add_child_node(data):
     """ Check data when adding a new child node
     To be more specific, the following keys will be checked
@@ -111,3 +114,30 @@ def check_vote_node(data):
     id_node = Nodes().retrieveById(data['nodeId'])
     if id_node.status_code == 404:
         raise ValueError("Cannot find the node voting on.")
+
+
+def check_create_event(data):
+    """
+    Check data of create an event
+    :param data:
+    :return:
+    """
+
+    if 'user_id' not in data:  # user_id empty check
+        raise ValueError('No user_id provided in event')
+
+    # TODO user_id user existence check
+
+    if 'node_id' not in data:  # node_id empty check
+        raise ValueError('No node_id provided in event')
+
+    # node_id node existence check
+    id_node = Nodes().retrieveById(data['node_id'])
+    if id_node.status_code == 404:
+        raise ValueError('Cannot find the node with id=' + data['node_id'])
+
+    if 'operation' not in data:
+        raise ValueError('No operation provided in event')
+
+    if data['operation'] not in PERMITTED_OPERATION_LIST:
+        raise ValueError('Operation ' + data['operation'] + ' is not permitted for an event')

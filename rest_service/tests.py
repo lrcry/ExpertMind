@@ -17,7 +17,8 @@ input = {
     'nodeStatus': 1
 }
 
-return_node = Nodes().create(input['nodeDisplay'], input['nodeDescription'], input['nodeTags'], input['nodeParents'], input['nodeChildren'], input['nodeVotes'], input['nodeStatus'])
+return_node = Nodes().create(input['nodeDisplay'], input['nodeDescription'], input['nodeTags'], input['nodeParents'],
+                             input['nodeChildren'], input['nodeVotes'], input['nodeStatus'])
 
 if "key" in return_node:
     for key in return_node:

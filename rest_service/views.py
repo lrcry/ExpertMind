@@ -9,6 +9,8 @@ import json
 """
 Nodes services defined here
 """
+
+
 # Create your views here.
 class JSONResponse(HttpResponse):
     def __init__(self, data, **kwargs):
@@ -53,7 +55,7 @@ def get_node_by_id(request, node_id):
 
             node_got = Nodes().retrieveById(node_id)
 
-            if 'code' in node_got and node_got['code'] == 'items_not_found': # not found in database
+            if 'code' in node_got and node_got['code'] == 'items_not_found':  # not found in database
                 no_node_response = {
                     "success": "true",
                     "data": "No node found with _id = %s" % node_id
