@@ -5,7 +5,17 @@ from dao.nodes import Nodes
 __author__ = 'hansmong'
 
 
-PERMITTED_OPERATION_LIST = ['CREATE_NEW_NODE', 'ADD_CHILD_NODE', 'VOTE_UP', 'VOTE_DOWN']
+# event operation
+CREATE_NEW_NODE = 'CREATE_NEW_NODE'
+ADD_CHILD_NODE = 'ADD_CHILD_NODE'
+VOTE_UP = 'VOTE_UP'
+VOTE_DOWN = 'VOTE_DOWN'
+PERMITTED_OPERATION_LIST = [CREATE_NEW_NODE, ADD_CHILD_NODE, VOTE_UP, VOTE_DOWN]
+
+# event status
+EVENT_READ = 'EVENT_READ'
+EVENT_UNREAD = 'EVENT_UNREAD'
+VALID_EVENT_STATUS_LIST = [EVENT_READ, EVENT_UNREAD]
 
 
 def check_add_child_node(data):
@@ -116,15 +126,16 @@ def check_vote_node(data):
         raise ValueError("Cannot find the node voting on.")
 
 
-def check_create_event(data):
+def check_event(data, request_method):
     """
-    Check data of create an event
+    Check data when creating an event
     :param data:
     :return:
     """
 
     if 'user_id' not in data:  # user_id empty check
-        raise ValueError('No user_id provided in event')
+        # raise ValueError('No user_id provided in event')
+        data['user_id'] = ''
 
     # TODO user_id user existence check
 
@@ -141,3 +152,13 @@ def check_create_event(data):
 
     if data['operation'] not in PERMITTED_OPERATION_LIST:
         raise ValueError('Operation ' + data['operation'] + ' is not permitted for an event')
+
+    if request_method == 'PUT':
+        if 'status' not in data:
+            raise ValueError('No status provided in event update')
+
+        if data['status'] not in VALID_EVENT_STATUS_LIST:
+            raise ValueError('Event status ' + data['status'] + ' is invalid')
+
+
+

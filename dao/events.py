@@ -1,6 +1,7 @@
 import datetime
 from db_connect import ConnectDB
 from porc import Patch
+from rest_service import data_checker
 
 
 __author__ = 'hansmong'
@@ -29,7 +30,7 @@ class Events(object):
         db_conn = ConnectDB().connect()
         current_time = datetime.datetime.now()  # create_at
         event['create_at'] = str(current_time)
-        event['status'] = 'EVENT_UNREAD'
+        event['status'] = data_checker.EVENT_UNREAD
         event_create = db_conn.post('node_events', event)
 
         # append a key as ID to event
@@ -41,7 +42,18 @@ class Events(object):
 
         return event_key
 
-    # TODO update an event (mainly for status)
+    @staticmethod
+    def update(_id, event):
+        """
+        Update an event
+        :param event:
+        :return:
+        """
+        print 'update'
+        db_conn = ConnectDB().connect()
+        update_result = db_conn.put('node_events', _id, event)
+        event_key = update_result.key
+        return event_key
 
     @staticmethod
     def retrieve_all():

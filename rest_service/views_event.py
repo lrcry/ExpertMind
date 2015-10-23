@@ -1,6 +1,4 @@
-from django.http.response import HttpResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
 from django.views.decorators.csrf import csrf_exempt
 import data_checker
 from views import JSONResponse
@@ -8,8 +6,6 @@ from dao.events import Events
 
 __author__ = 'hansmong'
 
-
-VALID_EVENT_STATUS = ['EVENT_UNREAD', 'EVENT_READ']
 
 @csrf_exempt
 def events(request):
@@ -27,7 +23,7 @@ def events(request):
                 user_id = request.GET.get('user_id', '')
                 status = request.GET.get('status', '')
 
-                if status is not '' and status not in VALID_EVENT_STATUS:
+                if status is not '' and status not in data_checker.VALID_EVENT_STATUS_LIST:
                     raise ValueError('Status ' + status + ' is not valid')
 
                 node_search = node_id is not ''
@@ -91,16 +87,28 @@ def events(request):
 
         elif request.method == 'POST':
             data = JSONParser().parse(request)
-            data_checker.check_create_event(data)
+            data_checker.check_event(data, request.method)
 
             created_event_key = Events.create(data)
 
             if created_event_key:
                 print 'create event successful'
-                resp = {
-                    'success': 'true',
-                    'data': created_event_key
-                }
+                if 'user_id' not in data:
+                    resp = {
+                        'success': 'true',
+                        'data': created_event_key
+                    }
+                else:
+                    all_events_list = Events.retrieve_all()
+                    resp_events = []
+                    for event in all_events_list:
+                        if event['user_id'] == data['user_id'] and event['status'] == data_checker.EVENT_UNREAD:
+                            resp_events.append(event)
+
+                    resp = {
+                        'success': 'true',
+                        'data': resp_events
+                    }
             else:
                 raise RuntimeError('Orchestrate service temporarily unavailable')
         else:
@@ -117,6 +125,7 @@ def events(request):
         return JSONResponse(err)
 
 
+@csrf_exempt
 def event_by_id(request, event_id):
     """
     GET /api/events/{event_id}
@@ -150,11 +159,46 @@ def event_by_id(request, event_id):
 
     elif request.method == 'PUT':
         print 'put update by event id'
-        # TODO PUT update by event id (mainly for status)
+        try:
+            data = JSONParser().parse(request)
+            data_checker.check_event(data, request.method)
 
+            update_event_key = Events.update(event_id, data)
+
+            if update_event_key:
+                print 'create event successful'
+                if 'user_id' not in data:
+                    resp = {
+                        'success': 'true',
+                        'data': update_event_key
+                    }
+                else:
+                    all_events_list = Events.retrieve_all()
+                    resp_events = []
+                    for event in all_events_list:
+                        if event['user_id'] == data['user_id'] and event['status'] == data_checker.EVENT_UNREAD:
+                            resp_events.append(event)
+
+                    resp = {
+                        'success': 'true',
+                        'data': resp_events
+                    }
+            else:
+                raise RuntimeError('Orchestrate service temporarily unavailable')
+
+        except Exception, e:
+            err = {
+                'success': 'false',
+                'data': {},
+                'err_message': str(e)
+            }
+            return JSONResponse(err)
+
+        return JSONResponse(resp)
     else:
         err = {
             "success": "false",
-            "err_message": "Only GET method is allowed",
+            "err_message": "Only GET and PUT method is allowed",
             "data": {}
         }
+        return JSONResponse(err)
