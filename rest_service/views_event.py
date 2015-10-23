@@ -9,6 +9,8 @@ from dao.events import Events
 __author__ = 'hansmong'
 
 
+VALID_EVENT_STATUS = ['EVENT_UNREAD', 'EVENT_READ']
+
 @csrf_exempt
 def events(request):
     """
@@ -23,39 +25,59 @@ def events(request):
             if events_list is not []:  # not empty list
                 node_id = request.GET.get('node_id', '')
                 user_id = request.GET.get('user_id', '')
+                status = request.GET.get('status', '')
+
+                if status is not '' and status not in VALID_EVENT_STATUS:
+                    raise ValueError('Status ' + status + ' is not valid')
+
+                node_search = node_id is not ''
+                user_search = user_id is not ''
+                status_search = status is not ''
 
                 events_search_list = []
-                if node_id is not '' and user_id is not '':  # both node id and user id
-                    for event in events_list:
-                        if event['node_id'] == node_id and event['user_id'] == user_id:
-                            events_search_list.append(event)
+
+                if node_search or user_search or status_search:  # has parameters to search
+                    if node_search and user_search and status_search:  # search by node, user and status
+                        for event in events_list:
+                            if event['node_id'] == node_id and event['user_id'] == user_id and event['status'] == status:
+                                events_search_list.append(event)
+
+                    elif node_search and user_search:  # search by node and user
+                        for event in events_list:
+                            if event['node_id'] == node_id and event['user_id'] == user_id:
+                                events_search_list.append(event)
+
+                    elif user_search and status_search:  # search by user and status
+                        for event in events_list:
+                            if event['user_id'] == user_id and event['status'] == status:
+                                events_search_list.append(event)
+
+                    elif node_search and status_search:  # search by node and status
+                        for event in events_list:
+                            if event['node_id'] == node_id and event['status'] == status:
+                                events_search_list.append(event)
+
+                    elif user_search:  # search only by user
+                        for event in events_list:
+                            if event['user_id'] == user_id:
+                                events_search_list.append(event)
+
+                    elif node_search:  # search only by node
+                        for event in events_list:
+                            if event['node_id'] == node_id:
+                                events_search_list.append(event)
+
+                    elif status_search:  # search only by status
+                        for event in events_list:
+                            if event['status'] == status:
+                                events_search_list.append(event)
 
                     resp = {
                         'success': 'true',
                         'data': events_search_list
                     }
 
-                elif node_id is not '':  # only by node id
-                    for event in events_list:
-                        if event['node_id'] == node_id:
-                            events_search_list.append(event)
-
-                    resp = {
-                        'success': 'true',
-                        'data': events_search_list
-                    }
-
-                elif user_id is not '':  # only by user id
-                    for event in events_list:
-                        if event['user_id'] == user_id:
-                            events_search_list.append(event)
-
-                    resp = {
-                        'success': 'true',
-                        'data': events_search_list
-                    }
-
-                else:  # all
+                else:  # all without parameters
                     resp = {
                         'success': 'true',
                         'data': events_list
