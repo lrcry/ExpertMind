@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-
+import django_stormpath.urls
+admin.autodiscover()
 
 urlpatterns = [
     url(r'^api/', include('rest_service.urls')),
+    url(r'', include(django_stormpath.urls)),
     url(r'^', include('web.urls'))
 ]
