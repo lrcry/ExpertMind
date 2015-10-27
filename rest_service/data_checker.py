@@ -135,7 +135,7 @@ def check_event(data, request_method):
 
     if 'user_id' not in data:  # user_id empty check
         # raise ValueError('No user_id provided in event')
-        data['user_id'] = 'Anonymous'  # if the user currently get th
+        data['user_id'] = 'Anonymous'  # for not logged-in users
 
     if 'node_id' not in data:  # node_id empty check
         raise ValueError('No node_id provided in event')

@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import data_checker
 from dao.nodes import Nodes
 import json
+import requests
 
 """
 Nodes services defined here
@@ -188,16 +189,34 @@ def node_votes(request):
             node_comment = vote_data["comment"]
             print node_comment + " as node comment"
 
+            event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+
             if vote_type == '1': # upvote
                 node_after_vote = Nodes().upvoteNode(node_id, user_id, node_comment)
+                event = {
+                    'user_id': user_id if user_id else 'Anonymous',
+                    'node_id': node_id,
+                    'operation': data_checker.VOTE_UP
+                }
             elif vote_type == '-1': # downvote
                 node_after_vote = Nodes().downvoteNode(node_id, user_id, node_comment)
+                event = {
+                    'user_id': user_id if user_id else 'Anonymous',
+                    'node_id': node_id,
+                    'operation': data_checker.VOTE_UP
+                }
+            else:
+                raise ValueError('Error when voting: only accept 1 and -1 as valid vote')
 
-            # node_after_vote = Nodes().retrieveById(node_id)
-            success = {
-                "success": "true",
-                "data": node_after_vote
-            }
+            event_response = requests.post(event_url, json.dumps(event))
+            if 'success' in event_response.json() and event_response.json()['success'] == 'true':
+                success = {
+                    "success": "true",
+                    "data": node_after_vote
+                }
+            else:
+                raise RuntimeError("Error when creating new event: " + event_response.json()['err_message'])
+
             return JSONResponse(success)
         except Exception, e:
             print 'POST exception ' + str(e)
@@ -222,10 +241,27 @@ def create_new_node(data):
     if created_node_key:  # succeeded
         print 'create node: key=', created_node_key
         map_nodes = Nodes().retrieveAll()
-        create_node_response = {
-            "success": "true",
-            "data": map_nodes
+
+        # create an event of creating new nodes for this user
+        event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+        event = {
+            'user_id': data['userId'] if 'userId' in data else 'Anonymous',
+            'node_id': created_node_key,
+            'operation': data_checker.CREATE_NEW_NODE
         }
+
+        event_response = requests.post(event_url, json.dumps(event))
+        if 'success' in event_response.json() and event_response.json()['success'] == 'true':
+            create_node_response = {
+                "success": "true",
+                "data": map_nodes
+            }
+        else:
+            create_node_response = {
+                "success": "false",
+                "data": {},
+                "error_message": "Error when creating new event: " + event_response.json()['err_message']
+            }
     else:
         create_node_response = {
             "success": "false",
@@ -289,11 +325,26 @@ def add_child_node(data):
 
             if parent_node_update:
                 print "update parent: key=", parent_node_update
-                map_nodes = Nodes().retrieveAll()
-                add_child_resp = {
-                    "success": "true",
-                    "data": map_nodes
+
+                # create an event of adding a child node for this user
+                event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+                event = {
+                    'user_id': data['userId'] if 'userId' in data else 'Anonymous',
+                    'node_id': parent_node_update,
+                    'operation': data_checker.ADD_CHILD_NODE
                 }
+
+                event_response = requests.post(event_url, json.dumps(event))
+
+                if 'success' in event_response.json() and event_response.json()['success'] == 'true':
+                    map_nodes = Nodes().retrieveAll()
+                    add_child_resp = {
+                        "success": "true",
+                        "data": map_nodes
+                    }
+                else:
+                    raise RuntimeError('Error adding child node: ' + event_response.json()['err_message'])
+
             else:
                 raise ValueError("Update parent node failed during adding a child node.")
         else:
