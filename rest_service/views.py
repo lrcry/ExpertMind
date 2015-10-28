@@ -189,7 +189,7 @@ def node_votes(request):
             node_comment = vote_data["comment"]
             print node_comment + " as node comment"
 
-            event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+            event_url = 'http://localhost:8000/api/events'
 
             if vote_type == '1': # upvote
                 node_after_vote = Nodes().upvoteNode(node_id, user_id, node_comment)
@@ -243,7 +243,7 @@ def create_new_node(data):
         map_nodes = Nodes().retrieveAll()
 
         # create an event of creating new nodes for this user
-        event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+        event_url = 'http://localhost:8000/api/events'
         event = {
             'user_id': data['userId'] if 'userId' in data else 'Anonymous',
             'node_id': created_node_key,
@@ -327,7 +327,7 @@ def add_child_node(data):
                 print "update parent: key=", parent_node_update
 
                 # create an event of adding a child node for this user
-                event_url = 'http://aws.kelvmiao.info/expert-mind/api/events'
+                event_url = 'http://localhost:8000/api/events'
                 event = {
                     'user_id': data['userId'] if 'userId' in data else 'Anonymous',
                     'node_id': parent_node_update,
