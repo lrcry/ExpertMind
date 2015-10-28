@@ -237,7 +237,7 @@ def create_new_node(data):
         return JSONResponse(error)
 
     created_node_key = Nodes().create(data["nodeDisplay"], data["nodeDescription"], data["nodeTags"], [],
-                          [], [], 1)
+                          [], [], 1, data['userId'] if 'userId' in data else 'Anonymous')
     if created_node_key:  # succeeded
         print 'create node: key=', created_node_key
         map_nodes = Nodes().retrieveAll()
@@ -303,7 +303,8 @@ def add_child_node(data):
             data["nodeParents"],
             data["nodeChildren"],
             data["nodeVotes"],
-            node_status
+            node_status,
+            data['userId'] if 'userId' in data else 'Anonymous'
         )
 
         if created_child_node_key:
@@ -321,7 +322,8 @@ def add_child_node(data):
                                                 parent_node["nodeChildren"],
                                                 parent_node["nodeVotes"],
                                                 parent_node["nodeStatus"],
-                                                parent_node["nodeCreateAt"])
+                                                parent_node["nodeCreateAt"],
+                                                parent_node['userId'])
 
             if parent_node_update:
                 print "update parent: key=", parent_node_update

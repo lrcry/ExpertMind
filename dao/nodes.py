@@ -19,7 +19,7 @@ class Nodes(object):
     # create a new node
     # add parent check has been done by service
     #
-    def create(self, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus):
+    def create(self, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus, userId):
         """ Create a new node
         The check of node data has been completed by service
 
@@ -30,6 +30,7 @@ class Nodes(object):
         :param nodeChildren: children nodes (if already has)
         :param nodeVotes: votes on node
         :param nodeStatus: status of node
+        :param userId: author identification
         :return: a key of the node as an identification
         """
 
@@ -43,7 +44,8 @@ class Nodes(object):
             "nodeChildren": nodeChildren,
             "nodeVotes": nodeVotes,  # This can be replaced by invoke methods in vote class
             "nodeStatus": str(nodeStatus),
-            "nodeCreateAt": str(current_time)
+            "nodeCreateAt": str(current_time),
+            "userId": userId
         })
 
         patch = Patch()
@@ -79,7 +81,7 @@ class Nodes(object):
         return list
 
     def update(self, _id, nodeDisplay, nodeDescription, nodeTags, nodeParents, nodeChildren, nodeVotes, nodeStatus,
-               nodeCreateAt):
+               nodeCreateAt, userId):
         """ Update an existing node in database
 
         :param _id: node ID
@@ -91,6 +93,7 @@ class Nodes(object):
         :param nodeVotes: votes on the node
         :param nodeStatus: node status
         :param nodeCreateAt: node creation time
+        :param userId: user identification
         :return: the key (ID) of the node
         """
         conn = ConnectDB().connect()
@@ -103,6 +106,7 @@ class Nodes(object):
             "nodeVotes": nodeVotes,  # This can be replaced by invoke methods in vote class
             "nodeStatus": str(nodeStatus),
             "nodeCreateAt": nodeCreateAt,
+            "userId": userId,
             "_id": _id
         })
 
