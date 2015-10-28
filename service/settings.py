@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_stormpath',
     'rest_framework',
 )
 
@@ -50,6 +51,32 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+AUTHENTICATION_BACKENDS = (
+    # ...
+    'django_stormpath.backends.StormpathBackend',
+    'django_stormpath.backends.StormpathIdSiteBackend',
+)
+
+
+STORMPATH_ID = 'JSIDH4RGPFWXN6OKHPU30FC2X'
+STORMPATH_SECRET = '/BGmEiZX0o5KFBJ3plIrN0MKTlD2vkBjYMkd4Fg5PGU'
+STORMPATH_APPLICATION = 'https://api.stormpath.com/v1/applications/3pXFDJUov6hjrk2PTZg4tf'
+
+AUTH_USER_MODEL = 'django_stormpath.StormpathUser'
+
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+LOGIN_REDIRECT_URL = '/'
+
+# This should be set to the same URI you've specified in your Stormpath ID
+# Site dashboard.  NOTE: This URL must be *exactly* the same as the one in
+# your Stormpath ID Site dashboard.
+STORMPATH_ID_SITE_CALLBACK_URI = 'http://localhost:8000/stormpath-id-site-callback/'
+
+# The URL you'd like to redirect users to after they've successfully logged
+# into their account.
+LOGIN_REDIRECT_URL = '/'
 
 ROOT_URLCONF = 'service.urls'
 
@@ -76,7 +103,12 @@ WSGI_APPLICATION = 'service.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
 
 
 # Internationalization

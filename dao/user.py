@@ -8,12 +8,10 @@ import json
 class User(object):
     user_json = {}
 
-    def __init__(self, user_name, login_token, email, intro, register_at):
-        self.username = user_name
-        self.loginToken = login_token
+    def __init__(self, given_name, surname, email):
+        self.given_name = given_name
+        self.surname = surname
         self.email = email
-        self.intro = intro
-        self.registerAt = register_at
 
     # Translate user object to json
     def to_json(self):
@@ -30,11 +28,9 @@ class User(object):
     def create(self):
         client = ConnectDB().connect()
         response = client.post('users', {
-            "username": self.username,
-            "loginToken": self.loginToken,
-            "email": self.email,
-            "intro": self.intro,
-            "registerAt": self.registerAt
+            "given_name": self.given_name,
+            "surname": self.surname,
+            "email": self.email
         })
         status = response.status_code
         reason = response.reason
@@ -60,6 +56,19 @@ class User(object):
         else:
             return None
 
+    # Retrieve a specific user by user email
+    # Email is unique for each user
+    @staticmethod
+    def retrieveByEmail(email):
+        client = ConnectDB().connect()
+        user_list =[]
+        users = client.search('users', 'email:'+email).all()[0]['value']
+        # for user in users:
+        #     value = user['value']
+        #     user_list.append(value)
+        return users
+
+
     # Retrieve all users
     # Return a list of users (json)
     @staticmethod
@@ -79,11 +88,9 @@ class User(object):
         client = ConnectDB().connect()
         response = client.put('users', user_key, {
             "_id": user_key,
-            "username": user.username,
-            "loginToken": user.loginToken,
-            "email": user.email,
-            "intro": user.intro,
-            "registerAt": user.registerAt
+            "given_name": user.given_name,
+            "surname": user.surname,
+            "email": user.email
         })
         status = response.status_code
         reason = response.reason
