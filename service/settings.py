@@ -72,7 +72,7 @@ LOGIN_REDIRECT_URL = '/'
 # This should be set to the same URI you've specified in your Stormpath ID
 # Site dashboard.  NOTE: This URL must be *exactly* the same as the one in
 # your Stormpath ID Site dashboard.
-STORMPATH_ID_SITE_CALLBACK_URI = 'http://aws.kelvmiao.info/expert-mind/stormpath-id-site-callback/'
+STORMPATH_ID_SITE_CALLBACK_URI = 'http://aws.kelvmiao.info/stormpath-id-site-callback/'
 
 # The URL you'd like to redirect users to after they've successfully logged
 # into their account.
