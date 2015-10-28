@@ -203,7 +203,7 @@ def node_votes(request):
                 event = {
                     'user_id': user_id if user_id else 'Anonymous',
                     'node_id': node_id,
-                    'operation': data_checker.VOTE_UP
+                    'operation': data_checker.VOTE_DOWN
                 }
             else:
                 raise ValueError('Error when voting: only accept 1 and -1 as valid vote')

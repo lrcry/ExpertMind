@@ -4,6 +4,18 @@ body{
   overflow: hidden;
   background: #b9bdbf;
 }
+.navbar-brand>img{
+  display: inline;
+  height: 28px;
+  margin-right: 6px;
+}
+.navbar-app-header{
+  top: -51px;
+  transition: top 300ms ease-in-out;
+  &.active{
+    top: 0;
+  }
+}
 .loading-anim-wrapper{
   height: 100%;
   width: 100%;
@@ -28,7 +40,7 @@ body{
   overflow: auto;
   position: fixed;
   left: -300px;
-  top: 0;
+  top: 50px;
   transition: left 300ms ease-in-out;
   &.active{
     left: 0

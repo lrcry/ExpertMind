@@ -15,6 +15,10 @@ angular.module 'app', []
   restrict: 'A'
   templateUrl: 'static/partial/map-canvas.html'
   controller: 'MapCanvasController'
+.directive 'eventNotificationList', ->
+  restrict: 'A'
+  templateUrl: 'static/partial/event-notification-list.html'
+  controller: 'EventNotificationController'
 .controller 'RootController', ['$scope', '$http', ($scope, $http)->
 ]
 .controller 'SidePanelController', ['$scope', '$http', ($scope, $http)->
@@ -30,6 +34,47 @@ angular.module 'app', []
     $container.removeClass('active')
     return undefined
 ]
+.controller 'EventNotificationController', ['$scope', '$http', ($scope, $http)->
+  $scope.$root.$watch 'mapData', (mapData)->
+    if !mapData or !window.user
+      return
+    $scope.requesting_events = true
+    $http.get("api/events?user_id=#{window.user.email}&status=EVENT_UNREAD")
+    .then (response)->
+      $scope.requesting_events = false
+      if response.data.success == 'true'
+        $scope.events = response.data.data
+        for event in $scope.events
+          event.title = getEventTitle(mapData, event)
+      else
+        alert("[API Error] " + response.data.err_message)
+    , (response)->
+      $scope.requesting_events = false
+      alert('[Request Error]' + response.status)
+
+  $scope.checkEvent = (event)->
+    $scope.events.splice($scope.events.indexOf(event), 1)
+    event.status = 'EVENT_READ'
+    $http.put "api/events/#{event._id}", event
+
+  getEventTitle = (mapData, event)->
+    node =
+      text: 'Unknown'
+    for item in mapData.node_list
+      if item.id == event.node_id
+        node = item
+        break
+    time = moment.duration(moment.utc(event.create_at).local().diff(moment())).humanize(true)
+    switch event.operation
+      when 'CREATE_NEW_NODE'
+        return "#{event.user_id} created a new node \"#{node.text}\" #{time}"
+      when 'ADD_CHILD_NODE'
+        return "#{event.user_id} added a child node to \"#{node.text}\" #{time}"
+      when 'VOTE_UP'
+        return "#{event.user_id} up-voted node \"#{node.text}\" #{time}"
+      when 'VOTE_DOWN'
+        return "#{event.user_id} down-voted node \"#{node.text}\" #{time}"
+]
 .controller 'ModalAddVoteController', ['$scope', '$http', ($scope, $http)->
   $modal = $('.modal-add-vote')
   $scope.submit_vote = ->
@@ -37,8 +82,11 @@ angular.module 'app', []
       alert 'Please leave a comment!'
       return
     $scope.requesting = true
-    $http.post 'api/votes/',
-      userId: ""
+    userId = ''
+    if window.user
+      userId = window.user.email
+    $http.post 'api/votes',
+      userId: userId
       type: $scope.vote
       comment: $scope.comment
       nodeId: $scope.node.id
@@ -74,16 +122,19 @@ angular.module 'app', []
     if node.description.length <= 0
       alert('Please input description!')
       return
+    userId = ''
+    if window.user
+      userId = window.user.email
     entity =
       nodeDisplay: node.title
       nodeDescription: node.description
-      userId: ""
+      userId: userId
     if node.parent != null
       entity.nodeParents = [
         _id: node.parent.id
       ]
     $scope.requesting = true
-    $http.post 'api/nodes/', entity
+    $http.post 'api/nodes', entity
     .then (response)->
       if response.data.success == 'true'
         $scope.requesting = false
@@ -110,12 +161,14 @@ angular.module 'app', []
       width: window.innerWidth
       height: window.innerHeight
     $scope.loading = true
-    $http.get 'api/nodes/'
+    $http.get 'api/nodes'
     .then (response)->
       $scope.loading = false
       mapData = pre_process(response.data)
       if !!mapData
         render(stage, null, mapData)
+        $scope.$root.mapData = mapData
+      $scope.$root.loaded = true
     , (response)->
       alert('[Request Error]' + response.status)
       $scope.loading = false
@@ -160,12 +213,15 @@ angular.module 'app', []
         else
           console.warn('Multiple root node detected, only the first one will be used.')
       votes = summarize_and_optimize_votes(item.nodeVotes)
+      author =
+        id: ''
+        name: "Anonymous"
+      if !!item.userId and item.userId != ''
+        author.id = author.name = item.userId
       ret.node_list.push
         id: item._id
         text: item.nodeDisplay
-        author:
-          id: 0
-          name: "Admin"
+        author: author
         description: item.nodeDescription
         creation_time: item.nodeCreateAt
         up_vote: votes.up

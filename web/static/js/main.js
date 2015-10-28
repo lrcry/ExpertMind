@@ -24,6 +24,12 @@
       templateUrl: 'static/partial/map-canvas.html',
       controller: 'MapCanvasController'
     };
+  }).directive('eventNotificationList', function() {
+    return {
+      restrict: 'A',
+      templateUrl: 'static/partial/event-notification-list.html',
+      controller: 'EventNotificationController'
+    };
   }).controller('RootController', ['$scope', '$http', function($scope, $http) {}]).controller('SidePanelController', [
     '$scope', '$http', function($scope, $http) {
       var $container;
@@ -43,18 +49,82 @@
         return void 0;
       };
     }
+  ]).controller('EventNotificationController', [
+    '$scope', '$http', function($scope, $http) {
+      var getEventTitle;
+      $scope.$root.$watch('mapData', function(mapData) {
+        if (!mapData || !window.user) {
+          return;
+        }
+        $scope.requesting_events = true;
+        return $http.get("api/events?user_id=" + window.user.email + "&status=EVENT_UNREAD").then(function(response) {
+          var event, i, len, ref, results;
+          $scope.requesting_events = false;
+          if (response.data.success === 'true') {
+            $scope.events = response.data.data;
+            ref = $scope.events;
+            results = [];
+            for (i = 0, len = ref.length; i < len; i++) {
+              event = ref[i];
+              results.push(event.title = getEventTitle(mapData, event));
+            }
+            return results;
+          } else {
+            return alert("[API Error] " + response.data.err_message);
+          }
+        }, function(response) {
+          $scope.requesting_events = false;
+          return alert('[Request Error]' + response.status);
+        });
+      });
+      $scope.checkEvent = function(event) {
+        $scope.events.splice($scope.events.indexOf(event), 1);
+        event.status = 'EVENT_READ';
+        return $http.put("api/events/" + event._id, event);
+      };
+      return getEventTitle = function(mapData, event) {
+        var i, item, len, node, ref, time;
+        node = {
+          text: 'Unknown'
+        };
+        ref = mapData.node_list;
+        for (i = 0, len = ref.length; i < len; i++) {
+          item = ref[i];
+          if (item.id === event.node_id) {
+            node = item;
+            break;
+          }
+        }
+        time = moment.duration(moment.utc(event.create_at).local().diff(moment())).humanize(true);
+        switch (event.operation) {
+          case 'CREATE_NEW_NODE':
+            return event.user_id + " created a new node \"" + node.text + "\" " + time;
+          case 'ADD_CHILD_NODE':
+            return event.user_id + " added a child node to \"" + node.text + "\" " + time;
+          case 'VOTE_UP':
+            return event.user_id + " up-voted node \"" + node.text + "\" " + time;
+          case 'VOTE_DOWN':
+            return event.user_id + " down-voted node \"" + node.text + "\" " + time;
+        }
+      };
+    }
   ]).controller('ModalAddVoteController', [
     '$scope', '$http', function($scope, $http) {
       var $modal;
       $modal = $('.modal-add-vote');
       $scope.submit_vote = function() {
+        var userId;
         if (!$scope.comment || $scope.comment.length <= 0) {
           alert('Please leave a comment!');
           return;
         }
         $scope.requesting = true;
-        return $http.post('api/votes/', {
-          userId: "",
+        userId = '';
+        if (window.user) {
+          userId = window.user.email;
+        }
+        return $http.post('api/votes', {
+          userId: userId,
           type: $scope.vote,
           comment: $scope.comment,
           nodeId: $scope.node.id
@@ -90,7 +160,7 @@
         description: ""
       };
       $scope.submit = function() {
-        var entity, node;
+        var entity, node, userId;
         node = $scope.newNode;
         if (node.title.length <= 0) {
           alert('Please input title!');
@@ -100,10 +170,14 @@
           alert('Please input description!');
           return;
         }
+        userId = '';
+        if (window.user) {
+          userId = window.user.email;
+        }
         entity = {
           nodeDisplay: node.title,
           nodeDescription: node.description,
-          userId: ""
+          userId: userId
         };
         if (node.parent !== null) {
           entity.nodeParents = [
@@ -113,7 +187,7 @@
           ];
         }
         $scope.requesting = true;
-        return $http.post('api/nodes/', entity).then(function(response) {
+        return $http.post('api/nodes', entity).then(function(response) {
           if (response.data.success === 'true') {
             $scope.requesting = false;
             return window.location.reload();
@@ -147,13 +221,15 @@
           height: window.innerHeight
         });
         $scope.loading = true;
-        $http.get('api/nodes/').then(function(response) {
+        $http.get('api/nodes').then(function(response) {
           var mapData;
           $scope.loading = false;
           mapData = pre_process(response.data);
           if (!!mapData) {
-            return render(stage, null, mapData);
+            render(stage, null, mapData);
+            $scope.$root.mapData = mapData;
           }
+          return $scope.$root.loaded = true;
         }, function(response) {
           alert('[Request Error]' + response.status);
           return $scope.loading = false;
@@ -198,7 +274,7 @@
         });
       };
       pre_process = function(data) {
-        var i, item, len, ref, ret, votes;
+        var author, i, item, len, ref, ret, votes;
         if (data.success !== 'true') {
           alert("[API Error] " + data.error_message);
           return false;
@@ -218,13 +294,17 @@
             }
           }
           votes = summarize_and_optimize_votes(item.nodeVotes);
+          author = {
+            id: '',
+            name: "Anonymous"
+          };
+          if (!!item.userId && item.userId !== '') {
+            author.id = author.name = item.userId;
+          }
           ret.node_list.push({
             id: item._id,
             text: item.nodeDisplay,
-            author: {
-              id: 0,
-              name: "Admin"
-            },
+            author: author,
             description: item.nodeDescription,
             creation_time: item.nodeCreateAt,
             up_vote: votes.up,

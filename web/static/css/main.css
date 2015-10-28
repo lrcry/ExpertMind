@@ -4,6 +4,19 @@ body {
   overflow: hidden;
   background: #b9bdbf;
 }
+.navbar-brand > img {
+  display: inline;
+  height: 28px;
+  margin-right: 6px;
+}
+.navbar-app-header {
+  top: -51px;
+  -webkit-transition: top 300ms ease-in-out;
+          transition: top 300ms ease-in-out;
+}
+.navbar-app-header.active {
+  top: 0;
+}
 .loading-anim-wrapper {
   height: 100%;
   width: 100%;
@@ -40,7 +53,7 @@ body {
   overflow: auto;
   position: fixed;
   left: -300px;
-  top: 0;
+  top: 50px;
   -webkit-transition: left 300ms ease-in-out;
           transition: left 300ms ease-in-out;
 }

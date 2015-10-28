@@ -6,5 +6,4 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^expertMind_login$', views.login, name='login')
 ]

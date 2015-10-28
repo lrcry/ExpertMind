@@ -1,0 +1,13 @@
+<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Messages <span class="badge">{{ events.length }}</span><span class="badge" ng-show="requesting_events">...</span><span class="caret"></span></a>
+<ul class="dropdown-menu">
+    <li ng-repeat="event in events">
+        <a href ng-click="checkEvent(event)">
+            <span class="glyphicon glyphicon-plus" ng-show="event.operation=='CREATE_NEW_NODE' || event.operation=='ADD_CHILD_NODE'"></span>
+            <span class="glyphicon glyphicon-thumbs-up" ng-show="event.operation=='VOTE_UP'"></span>
+            <span class="glyphicon glyphicon-thumbs-down" ng-show="event.operation=='VOTE_DOWN'"></span>
+            &nbsp;
+            {{ event.title }}
+        </a>
+    </li>
+    <li ng-show="events.length==0" class="disabled"><a href>(It's empty now)</a></li>
+</ul>
