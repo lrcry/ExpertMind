@@ -50,8 +50,10 @@ Before deploy and use ExpertMind REST Service codes on your computer, please mak
       pip install djangorestframework
       pip install markdown
       pip install django-filter
+      pip install stormpath
+      pip install django-stormpath
       ```
-      See [Django REST frameworkd installation documentation](http://www.django-rest-framework.org/#installation)
+      See [Django REST framework installation documentation](http://www.django-rest-framework.org/#installation)
 
 
   - Use PIP to install orchestrate mongodb service support  
